@@ -1,0 +1,8 @@
+# Copy this file to .dev.vars and fill in real values for local development
+# (`npm run dev`). .dev.vars is gitignored and never committed.
+#
+# See docs/SETUP.md and docs/DEPLOYMENT.md for how to obtain these values.
+
+SENDSEVEN_OAUTH_CLIENT_ID=s7_app_your_client_id_here
+SENDSEVEN_OAUTH_CLIENT_SECRET=s7_secret_your_client_secret_here
+COOKIE_ENCRYPTION_KEY=generate_with_openssl_rand_hex_32

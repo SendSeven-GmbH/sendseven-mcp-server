@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "sendseven": {
+      "url": "https://mcp.sendseven.com/mcp",
+      "auth": {
+        "type": "oauth2",
+        "authorizationUrl": "https://mcp.sendseven.com/authorize",
+        "scopes": [
+          "openid",
+          "profile",
+          "email",
+          "offline_access",
+          "conversations:read",
+          "conversations:create",
+          "conversations:update",
+          "messages:read",
+          "messages:create",
+          "notes:create",
+          "team:read",
+          "channels:read",
+          "teamchat:write",
+          "team_chat:read",
+          "contacts:read",
+          "contacts:create",
+          "contacts:update",
+          "tags:read",
+          "tags:create",
+          "campaigns:read",
+          "campaigns:create",
+          "campaigns:send",
+          "lists:read",
+          "knowledge_base:read",
+          "webhooks:read",
+          "webhooks:create",
+          "webhooks:delete"
+        ]
+      }
+    }
+  }
+}

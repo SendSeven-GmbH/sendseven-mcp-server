@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "sendseven": {
+      "url": "https://mcp.sendseven.com/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_SENDSEVEN_API_TOKEN"
+      }
+    }
+  }
+}

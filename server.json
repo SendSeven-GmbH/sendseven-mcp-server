@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.sendseven/messaging",
+  "description": "Unified messaging MCP server: WhatsApp, Instagram, Telegram, SMS, Messenger & email support inbox",
+  "version": "0.3.0",
+  "repository": {
+    "url": "https://github.com/SendSeven-GmbH/sendseven-mcp-server",
+    "source": "github"
+  },
+  "websiteUrl": "https://sendseven.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.sendseven.com/mcp"
+    }
+  ]
+}

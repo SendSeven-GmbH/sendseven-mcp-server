@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+*.log
+coverage/
+.DS_Store
+
+# Real Cloudflare config (contains your KV namespace ID and custom domain).
+# Copy wrangler.jsonc.example to wrangler.jsonc and fill in your own values.
+wrangler.jsonc

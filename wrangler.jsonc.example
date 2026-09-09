@@ -1,0 +1,66 @@
+// Copy this file to wrangler.jsonc and fill in your own values before running
+// `npm run dev` or `npm run deploy`. wrangler.jsonc is gitignored so your real
+// KV namespace ID and custom domain never get committed.
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "sendseven-mcp",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-12-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	/**
+   * Secrets (set via `npx wrangler secret put <NAME>`):
+   *   SENDSEVEN_OAUTH_CLIENT_ID    - OAuth app client ID from SendSeven
+   *   SENDSEVEN_OAUTH_CLIENT_SECRET - OAuth app client secret from SendSeven
+   *   COOKIE_ENCRYPTION_KEY         - 32-byte hex key (openssl rand -hex 32)
+   *
+   * See docs/DEPLOYMENT.md for full setup instructions.
+   */
+	"vars": {
+		"SENDSEVEN_API_URL": "https://api.sendseven.com/api/v1",
+		"SENDSEVEN_AUTH_URL": "https://api.sendseven.com/api/v1/oauth-apps",
+		"SENDSEVEN_CONSENT_URL": "https://app.sendseven.com/oauth/consent",
+		"MCP_SERVER_NAME": "SendSeven MCP Server",
+		"MCP_SERVER_VERSION": "0.3.0"
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "MCP_OBJECT",
+				"class_name": "SendSevenMCP"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"SendSevenMCP"
+			]
+		}
+	],
+	/**
+   * KV namespace for OAuth state storage.
+   * Create with: npx wrangler kv namespace create OAUTH_KV
+   * Then replace the placeholder ID below with the output.
+   */
+	"kv_namespaces": [
+		{
+			"binding": "OAUTH_KV",
+			"id": "YOUR_KV_NAMESPACE_ID"
+		}
+	],
+	"routes": [
+		{
+			"pattern": "your-domain.example.com",
+			"custom_domain": true
+		}
+	],
+	"observability": {
+		"enabled": true
+	},
+	"dev": {
+		"port": 8787
+	}
+}
