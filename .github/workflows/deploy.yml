@@ -52,9 +52,13 @@ jobs:
 
       - name: Generate wrangler.jsonc
         # wrangler.jsonc is gitignored (it holds the real KV namespace ID),
-        # so CI regenerates it from the committed template + a repo secret.
+        # so CI regenerates it from the committed template. The KV ID comes
+        # from a repo secret; the production route is injected here (the
+        # domain is public, so it is not a secret). The .example file stays a
+        # generic template for self-hosters.
         run: |
-          sed "s/YOUR_KV_NAMESPACE_ID/${{ secrets.CF_KV_NAMESPACE_ID }}/" \
+          sed -e "s/YOUR_KV_NAMESPACE_ID/${{ secrets.CF_KV_NAMESPACE_ID }}/" \
+              -e "s/your-domain\.example\.com/mcp.sendseven.com/" \
             wrangler.jsonc.example > wrangler.jsonc
 
       - name: Deploy to Cloudflare Workers
