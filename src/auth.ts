@@ -24,7 +24,7 @@ export async function validateApiToken(
   const response = await fetch(`${apiUrl}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      "User-Agent": "SendSeven-MCP/0.1.0",
+      "User-Agent": "SendSeven-MCP/1.0.0",
     },
   });
 

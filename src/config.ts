@@ -164,7 +164,7 @@ export const RATE_LIMITS = {
 /** MCP server metadata */
 export const SERVER_INFO = {
   name: "sendseven-mcp",
-  version: "0.3.0",
+  version: "1.0.0",
   description: "SendSeven MCP Server - AI-native messaging API for multi-channel communication",
   vendor: "SendSeven GmbH",
   homepage: "https://sendseven.com",

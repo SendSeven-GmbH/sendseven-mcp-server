@@ -1,6 +1,6 @@
 {
   "name": "@sendseven/mcp-server",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "SendSeven MCP Server - AI-native messaging API integration for Claude, GPT, Gemini and any MCP client",
   "author": "SendSeven GmbH",
   "license": "MIT",

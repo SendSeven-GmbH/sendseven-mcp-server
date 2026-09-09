@@ -210,7 +210,7 @@ These are configured in `wrangler.jsonc` under `vars` and do not need `wrangler 
 | `SENDSEVEN_API_URL` | `https://api.sendseven.com/api/v1` | SendSeven API base URL |
 | `SENDSEVEN_AUTH_URL` | `https://api.sendseven.com/api/v1/oauth-apps` | OAuth authorization endpoint |
 | `MCP_SERVER_NAME` | `SendSeven MCP Server` | Server name reported to MCP clients |
-| `MCP_SERVER_VERSION` | `0.3.0` | Server version reported to MCP clients |
+| `MCP_SERVER_VERSION` | `1.0.0` | Server version reported to MCP clients |
 
 To point a local or self-hosted deployment at a different SendSeven environment, override `SENDSEVEN_API_URL` and `SENDSEVEN_AUTH_URL` in `.dev.vars`:
 

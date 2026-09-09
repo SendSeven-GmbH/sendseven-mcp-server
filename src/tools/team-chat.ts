@@ -99,7 +99,7 @@ async function getTeamChatJson<T>(
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        "User-Agent": "SendSeven-MCP/0.2.0",
+        "User-Agent": "SendSeven-MCP/1.0.0",
       },
     });
 

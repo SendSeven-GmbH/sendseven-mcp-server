@@ -76,7 +76,7 @@ export class SendSevenApiClient {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.accessToken}`,
       "Content-Type": "application/json",
-      "User-Agent": "SendSeven-MCP/0.2.0",
+      "User-Agent": "SendSeven-MCP/1.0.0",
     };
 
     const response = await fetch(url.toString(), {

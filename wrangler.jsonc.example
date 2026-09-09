@@ -22,7 +22,7 @@
 		"SENDSEVEN_AUTH_URL": "https://api.sendseven.com/api/v1/oauth-apps",
 		"SENDSEVEN_CONSENT_URL": "https://app.sendseven.com/oauth/consent",
 		"MCP_SERVER_NAME": "SendSeven MCP Server",
-		"MCP_SERVER_VERSION": "0.3.0"
+		"MCP_SERVER_VERSION": "1.0.0"
 	},
 	"durable_objects": {
 		"bindings": [
