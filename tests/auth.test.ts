@@ -12,8 +12,8 @@ describe("isApiToken", () => {
     expect(isApiToken("s7_api_abc123def456")).toBe(true);
   });
 
-  it("should reject unknown-prefixed tokens", () => {
-    expect(isApiToken("legacy_abc123def456")).toBe(false);
+  it("should reject legacy-prefixed tokens", () => {
+    expect(isApiToken("msgapi_abc123def456")).toBe(false);
   });
 
   it("should reject JWT tokens", () => {
