@@ -66,7 +66,8 @@ export interface MessageAttachment {
 
 export interface Message {
   id: string;
-  conversation_id: string;
+  /** Null for campaign/flow messages sent to a contact with no conversation on that channel. */
+  conversation_id: string | null;
   tenant_id?: string;
   platform?: string;
   channel_id?: string;
