@@ -20,9 +20,11 @@ import {
   addApprovedClient,
   bindStateToSession,
   createOAuthState,
+  describeRedirectDestination,
   generateCSRFProtection,
   isClientApproved,
   OAuthError,
+  persistApprovedClient,
   validateCSRFToken,
   validateOAuthState,
 } from "./workers-oauth-utils.js";
@@ -76,10 +78,12 @@ app.get("/authorize", async (c) => {
 
     const clientRecord = client as Record<string, unknown> | null;
     const clientName = String(clientRecord?.clientName ?? clientRecord?.name ?? "AI Assistant");
+    const redirectDestination = describeRedirectDestination(oauthReqInfo.redirectUri);
 
     return renderApprovalPage(c.req.raw, {
       csrfToken,
       clientName,
+      redirectDestination,
       setCookie,
       state: { oauthReqInfo },
     });
@@ -213,6 +217,13 @@ app.get("/callback", async (c) => {
     ? claims.exp
     : Math.floor(Date.now() / 1000) + (tokens.expires_in || 3600);
 
+  // This client just completed a real OAuth flow, so it's no longer an
+  // "unused" registration — clear the TTL set at POST /register time (see
+  // register-guard.ts) so it doesn't expire out from under an active
+  // connection. Harmless no-op for clients registered before this change,
+  // which never had a TTL to begin with.
+  await persistApprovedClient(oauthReqInfo.clientId, c.env.OAUTH_KV);
+
   // Complete the OAuth flow - OAuthProvider issues its own tokens
   const { redirectTo } = await c.env.OAUTH_PROVIDER.completeAuthorization({
     request: oauthReqInfo,
@@ -311,6 +322,7 @@ function renderApprovalPage(
   opts: {
     csrfToken: string;
     clientName: string;
+    redirectDestination: { host: string; known: boolean };
     setCookie: string;
     state: { oauthReqInfo: AuthRequest };
   }
@@ -368,6 +380,25 @@ function renderApprovalPage(
       margin: 0 0 1.25rem;
     }
     .card-subtitle strong { color: #0f172a; }
+    .badge {
+      display: inline-block; font-size: 0.625rem; font-weight: 700;
+      padding: 0.125rem 0.4375rem; border-radius: 999px; margin-left: 0.375rem;
+      vertical-align: middle; text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .badge-verified { background: #dcfce7; color: #15803d; }
+    .badge-unverified { background: #fef3c7; color: #92400e; }
+    .redirect-note {
+      font-size: 0.75rem; color: #64748b; line-height: 1.4;
+      margin: 0 0 1.25rem;
+    }
+    .redirect-note strong { color: #0f172a; }
+    .warning-box {
+      display: flex; gap: 0.5rem; align-items: flex-start; text-align: left;
+      background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+      border-radius: 8px; padding: 0.625rem 0.75rem; font-size: 0.75rem;
+      line-height: 1.4; margin: 0 0 1.25rem;
+    }
+    .warning-box svg { flex-shrink: 0; margin-top: 0.0625rem; }
     .card-body { padding: 0 1.5rem 1.5rem; }
     .separator {
       height: 1px; background: #e2e8f0; margin: 0 0 1rem;
@@ -448,9 +479,17 @@ function renderApprovalPage(
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
       </div>
       <h1 class="card-title">Connect to SendSeven</h1>
-      <p class="card-subtitle"><strong>${sanitize(opts.clientName)}</strong> is requesting access to your SendSeven account.</p>
+      <p class="card-subtitle">
+        <strong>${sanitize(opts.clientName)}</strong><span class="badge ${opts.redirectDestination.known ? "badge-verified" : "badge-unverified"}">${opts.redirectDestination.known ? "Verified" : "Unverified"}</span>
+        is requesting access to your SendSeven account.
+      </p>
     </div>
     <div class="card-body">
+      <p class="redirect-note">After approval you'll be redirected to <strong>${sanitize(opts.redirectDestination.host)}</strong>.</p>
+      ${opts.redirectDestination.known ? "" : `<div class="warning-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span>This app is not a recognized SendSeven client. Only approve if you started this connection yourself and trust this destination.</span>
+      </div>`}
       <div class="separator"></div>
       <div class="section-label">Select capabilities</div>
       <form method="POST" action="/authorize" id="approveForm">

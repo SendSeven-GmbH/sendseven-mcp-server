@@ -152,6 +152,78 @@ export async function isClientApproved(
   }
 }
 
+// ─── Known Redirect Hosts (consent-phishing UX only) ─────────────
+//
+// This list is display-only. It is NOT a security boundary: DCR stays
+// open (the MCP spec requires it, and Claude.ai/ChatGPT/Claude Code/Cursor
+// all self-register with no allowlist), and @cloudflare/workers-oauth-provider
+// already validates redirect_uri against the client's own registered URIs
+// regardless of what's below.
+//
+// The only purpose of this list is to decide whether the /authorize approval
+// page shows a "Verified" badge or an "Unverified" warning next to the
+// client name, so a client that registers itself as "Claude" with an
+// evil.com callback looks visibly different from the real thing. Adding a
+// host here only removes the warning banner for it — never gate any
+// functionality on membership in this set.
+const KNOWN_REDIRECT_HOSTS = new Set([
+  "claude.ai",
+  "claude.com",
+  "chatgpt.com",
+  "chat.openai.com",
+]);
+
+// Loopback callbacks (CLI/desktop clients like Claude Code, Cursor, and
+// other local MCP clients bind an ephemeral port on localhost for the OAuth
+// redirect) are always "known" regardless of port.
+function isLoopbackHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+}
+
+export function isKnownRedirectHost(hostname: string): boolean {
+  return isLoopbackHost(hostname) || KNOWN_REDIRECT_HOSTS.has(hostname.toLowerCase());
+}
+
+/**
+ * Parse a redirect_uri for display on the approval page: the hostname to
+ * show the user, plus the port when it's a loopback address (the port is
+ * the only thing distinguishing one local CLI tool's callback from
+ * another). Falls back to showing the raw string if the URI doesn't parse.
+ */
+export function describeRedirectDestination(redirectUri: string): { host: string; known: boolean } {
+  try {
+    const url = new URL(redirectUri);
+    const loopback = isLoopbackHost(url.hostname);
+    const host = loopback && url.port ? `${url.hostname}:${url.port}` : url.hostname;
+    return { host, known: isKnownRedirectHost(url.hostname) };
+  } catch {
+    return { host: redirectUri, known: false };
+  }
+}
+
+// ─── Registered-Client TTL (DCR spam control) ────────────────────
+
+/**
+ * Make a freshly-registered client permanent by re-storing its KV record
+ * without an expiration. Call this once a client actually completes the
+ * OAuth flow (see auth-handler.ts's /callback).
+ *
+ * New client records are given a short TTL at registration time (see
+ * index.ts's POST /register wrapper) so clients that never come back to
+ * finish authorizing — registration spam/scanners — expire on their own.
+ * A `put` with no `expirationTtl` fully replaces the KV entry including any
+ * previously-set TTL, so this is safe to call on every successful callback,
+ * including for clients registered before this change (which never had a
+ * TTL to begin with — this is a harmless no-op re-put for them).
+ */
+export async function persistApprovedClient(clientId: string, kv: KVNamespace): Promise<void> {
+  const key = `client:${clientId}`;
+  const raw = await kv.get(key);
+  if (!raw) return;
+  await kv.put(key, raw);
+}
+
 /**
  * Add a client to the approved list.
  */

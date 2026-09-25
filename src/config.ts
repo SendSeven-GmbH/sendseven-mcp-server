@@ -26,6 +26,11 @@ export interface Env {
 
   // KV for OAuth state
   OAUTH_KV: KVNamespace;
+
+  // Rate limiting for POST /register (DCR registration-spam control, see
+  // register-guard.ts). Optional: falls back to an OAUTH_KV counter when
+  // this binding isn't configured (e.g. local dev).
+  RATE_LIMITER?: RateLimit;
 }
 
 /**

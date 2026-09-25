@@ -17,7 +17,8 @@ The MCP server runs as a Cloudflare Worker with the following bindings:
 | Binding | Type | Purpose |
 |---------|------|---------|
 | `MCP_OBJECT` | Durable Object | McpAgent sessions (per-user state, SQLite-backed) |
-| `OAUTH_KV` | KV Namespace | OAuth state storage (PKCE codes, session tokens) |
+| `OAUTH_KV` | KV Namespace | OAuth state storage (PKCE codes, session tokens), also stores registered OAuth clients |
+| `RATE_LIMITER` | Rate Limiting | Per-IP limit on POST /register (DCR spam control, optional — falls back to an OAUTH_KV counter if omitted) |
 
 Secrets are stored securely in Cloudflare and never exposed in code or logs.
 
@@ -76,6 +77,29 @@ Add the preview ID to `wrangler.jsonc`:
   }
 ]
 ```
+
+## Step 2b: Rate Limiter Binding (optional but recommended)
+
+`wrangler.jsonc.example` already declares a `ratelimits` binding named
+`RATE_LIMITER` that throttles POST /register (Dynamic Client Registration)
+per IP to curb registration spam:
+
+```jsonc
+"ratelimits": [
+  {
+    "name": "RATE_LIMITER",
+    "namespace_id": "1001",
+    "simple": { "limit": 10, "period": 60 }
+  }
+]
+```
+
+Unlike `OAUTH_KV`, `namespace_id` here isn't created via `wrangler` or the
+dashboard — it's any integer you pick yourself, unique among your account's
+rate limit bindings. The default `1001` works as-is; change it only if it
+collides with another rate limit binding on the same Cloudflare account. If
+this binding is omitted entirely, the server still works — it falls back to
+an approximate `OAUTH_KV`-based counter (see `src/register-guard.ts`).
 
 ## Step 3: Set Secrets
 

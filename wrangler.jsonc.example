@@ -51,6 +51,24 @@
 			"id": "YOUR_KV_NAMESPACE_ID"
 		}
 	],
+	/**
+   * Rate limit for POST /register (Dynamic Client Registration spam
+   * control - see src/register-guard.ts). Unlike KV namespace IDs,
+   * `namespace_id` here is NOT created via the API/dashboard - it's any
+   * integer you make up yourself, unique among your account's rate limit
+   * bindings. Optional: the code falls back to a KV-based counter if this
+   * binding is omitted (e.g. self-hosted forks that skip this step).
+   */
+	"ratelimits": [
+		{
+			"name": "RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": {
+				"limit": 10,
+				"period": 60
+			}
+		}
+	],
 	"routes": [
 		{
 			"pattern": "your-domain.example.com",

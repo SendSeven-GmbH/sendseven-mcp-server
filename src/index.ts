@@ -17,6 +17,7 @@ import { McpAgent } from "agents/mcp";
 
 import type { Env, Props } from "./config.js";
 import { SendSevenHandler } from "./auth-handler.js";
+import { applyUnusedClientTtl, isRegisterAllowed, registerRateLimitedResponse } from "./register-guard.js";
 import { registerConversationTools } from "./tools/conversations.js";
 import { registerMessagingTools } from "./tools/messaging.js";
 import { registerContactTools } from "./tools/contacts.js";
@@ -148,7 +149,7 @@ export class SendSevenMCP extends McpAgent<Env, Record<string, never>, Props> {
 
 // ─── Worker Export ───────────────────────────────────────────────
 
-export default new OAuthProvider({
+const oauthProvider = new OAuthProvider({
   apiHandler: SendSevenMCP.serve("/mcp"),
   apiRoute: "/mcp",
   defaultHandler: SendSevenHandler as unknown as ExportedHandler,
@@ -156,3 +157,29 @@ export default new OAuthProvider({
   tokenEndpoint: "/token",
   clientRegistrationEndpoint: "/register",
 });
+
+/**
+ * OAuthProvider handles POST /register (Dynamic Client Registration)
+ * entirely inside its own fetch() dispatch, before our Hono app
+ * (auth-handler.ts) ever runs — so rate limiting and the registration TTL
+ * can't be added as Hono middleware. This wraps the whole Worker fetch
+ * instead, special-casing that one route. See register-guard.ts.
+ */
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    if (request.method === "POST" && url.pathname === "/register") {
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      if (!(await isRegisterAllowed(ip, env))) {
+        return registerRateLimitedResponse();
+      }
+
+      const response = await oauthProvider.fetch(request, env, ctx);
+      // Fire-and-forget: don't delay the client's response on the TTL write.
+      ctx.waitUntil(applyUnusedClientTtl(response.clone(), env));
+      return response;
+    }
+
+    return oauthProvider.fetch(request, env, ctx);
+  },
+} satisfies ExportedHandler<Env>;
