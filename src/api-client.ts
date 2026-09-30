@@ -98,14 +98,22 @@ export class SendSevenApiClient {
     if (!response.ok) {
       const errorBody = await response.text();
       let detail: string;
+      let apiErrorCode: string | undefined;
       try {
         const parsed = JSON.parse(errorBody) as ApiError;
-        detail = parsed.detail || errorBody;
+        if (typeof parsed.detail === "string") {
+          detail = parsed.detail || errorBody;
+        } else if (parsed.detail && typeof parsed.detail === "object") {
+          detail = parsed.detail.message || errorBody;
+          apiErrorCode = parsed.detail.code;
+        } else {
+          detail = errorBody;
+        }
       } catch {
         detail = errorBody;
       }
 
-      throw new ApiClientError(response.status, detail, path);
+      throw new ApiClientError(response.status, detail, path, apiErrorCode);
     }
 
     if (response.status === 204) {
@@ -591,6 +599,10 @@ export class SendSevenApiClient {
     scheduled_at?: string;
     whatsapp_template_name?: string;
     whatsapp_template_language?: string;
+    /** Messages per MINUTE (1-60000). Only lowers throughput below the channel's own cap, never raises it. */
+    send_rate_limit?: number;
+    /** Pause the campaign after each batch of this many recipients for review before continuing. */
+    send_batch_size?: number;
   }): Promise<Campaign> {
     return this.post("/campaigns", params);
   }
@@ -840,17 +852,35 @@ export class SendSevenApiClient {
 /**
  * Custom error class for API client errors with recovery hints.
  */
+// Known structured 422 error codes with tailored, non-generic suggestions.
+// Add to this map as new structured codes are introduced backend-side —
+// anything not listed here still surfaces (via apiErrorCode) but falls
+// back to the generic 422 suggestion below.
+const KNOWN_ERROR_SUGGESTIONS: Record<string, string> = {
+  send_rate_limit_out_of_range:
+    "Set send_rate_limit to a whole number of messages per minute between 1 and 60000, or omit it entirely to use the channel's own maximum speed. It can only slow sending down, never speed it up.",
+  send_batch_size_invalid:
+    "Set send_batch_size to a positive integer (e.g. 50 for a first test batch on a large SMS list), or omit it to send to the whole list without pausing between batches.",
+  send_pacing_conflicts_with_split:
+    "send_rate_limit and send_batch_size can't be combined with WhatsApp's multi-day split-sending on this campaign. Remove the pacing fields, or turn off split-sending, then retry.",
+  send_pacing_unavailable:
+    "Send pacing (send_rate_limit / send_batch_size) isn't enabled on this SendSeven account yet. Retry without these fields, or ask the account owner to enable it.",
+};
+
 export class ApiClientError extends Error {
   public readonly statusCode: number;
   public readonly path: string;
   public readonly recoverable: boolean;
   public readonly suggestion: string;
+  /** Structured error code from the API's `{"detail": {"code": ...}}` shape, when present. */
+  public readonly apiErrorCode?: string;
 
-  constructor(statusCode: number, detail: string, path: string) {
+  constructor(statusCode: number, detail: string, path: string, apiErrorCode?: string) {
     super(detail);
     this.name = "ApiClientError";
     this.statusCode = statusCode;
     this.path = path;
+    this.apiErrorCode = apiErrorCode;
 
     // Determine recoverability and suggestions
     switch (statusCode) {
@@ -868,7 +898,8 @@ export class ApiClientError extends Error {
         break;
       case 422:
         this.recoverable = true;
-        this.suggestion = "Invalid input. Please check the parameters and try again.";
+        this.suggestion = (apiErrorCode && KNOWN_ERROR_SUGGESTIONS[apiErrorCode])
+          || "Invalid input. Please check the parameters and try again.";
         break;
       case 429:
         this.recoverable = true;
@@ -894,6 +925,7 @@ export class ApiClientError extends Error {
   }
 
   private errorCode(): string {
+    if (this.statusCode === 422 && this.apiErrorCode) return this.apiErrorCode;
     switch (this.statusCode) {
       case 401: return "unauthorized";
       case 403: return "forbidden";

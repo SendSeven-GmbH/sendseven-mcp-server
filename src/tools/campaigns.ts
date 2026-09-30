@@ -156,12 +156,18 @@ A campaign ALWAYS requires at least one target list — there is no "send to all
 option anymore. Use list_contact_lists first to find (or create, in the SendSeven
 dashboard) the list ID(s) to target.
 
+Pacing (optional): send_rate_limit caps speed in messages per MINUTE (can only slow a
+channel down, never speed it up); send_batch_size sends in chunks and pauses the campaign
+after each one for review before the next batch. For a large SMS audience, a first test
+batch of about 50 recipients is a good idea.
+
 Examples:
 - "Send a push notification to the VIP list: Flash sale today!" → channel="browser_push", list_ids=["<vip-list-id>"], browser_push_title="Flash Sale!", target_url="https://shop.example.com/sale"
 - "WhatsApp campaign to VIP list: Your exclusive offer" → channel="whatsapp", list_ids=["<vip-list-id>"]
 - "Send a Telegram message to the newsletter list about the event" → channel="telegram", list_ids=["<newsletter-list-id>"]
 - "SMS campaign: Your appointment is tomorrow" → channel="sms", list_ids=["<list-id>"]
-- "WhatsApp template campaign" → channel="whatsapp", list_ids=["<list-id>"], message_type="whatsapp_template", template_name="order_update", template_language="en"`,
+- "WhatsApp template campaign" → channel="whatsapp", list_ids=["<list-id>"], message_type="whatsapp_template", template_name="order_update", template_language="en"
+- "SMS campaign to the Q4 leads list, in batches of 50" → channel="sms", list_ids=["<q4-leads-list-id>"], send_batch_size=50`,
     {
       name: z.string().describe("Campaign name (internal identifier)"),
       message: z.string().describe("The campaign message content"),
@@ -186,6 +192,11 @@ Examples:
       // Scheduling
       scheduled_at: z.string().optional()
         .describe("Schedule for later (ISO 8601 datetime, e.g. '2026-03-01T09:00:00Z'). Omit for immediate or draft."),
+      // Send pacing
+      send_rate_limit: z.number().int().min(1).max(60000).optional()
+        .describe("Cap the send speed in messages PER MINUTE (1-60000). This can only LOWER throughput below the channel's own cap — it never speeds sending up. Omit to send at the channel's normal maximum speed."),
+      send_batch_size: z.number().int().min(1).optional()
+        .describe("Send in batches of this many recipients. After each batch the campaign pauses (status 'paused', throttle_reason 'batch_complete') so the results can be reviewed before the next batch — or all remaining recipients — is sent from the SendSeven dashboard or via POST /campaigns/{id}/send-next-batch; resuming a batch-paused campaign also sends just the next batch at this size. For a large SMS audience, a first test batch of about 50 recipients is a good idea."),
     },
     { title: "Create and Send Campaign", readOnlyHint: false, destructiveHint: false },
     async (params) => {
@@ -213,6 +224,8 @@ Examples:
           whatsapp_template_name: params.template_name,
           whatsapp_template_language: params.template_language,
           scheduled_at: params.scheduled_at,
+          send_rate_limit: params.send_rate_limit,
+          send_batch_size: params.send_batch_size,
         });
 
         let costEstimate;

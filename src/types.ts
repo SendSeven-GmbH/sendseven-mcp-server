@@ -22,7 +22,10 @@ export interface SuccessResponse {
 }
 
 export interface ApiError {
-  detail: string;
+  // Most endpoints send a plain string. Some (e.g. campaigns) send a
+  // structured {"code": "...", "message": "..."} object so callers can
+  // branch on the code without parsing the message text.
+  detail: string | { code?: string; message?: string };
   status_code?: number;
 }
 
