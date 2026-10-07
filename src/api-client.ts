@@ -6,6 +6,7 @@
  */
 
 import type {
+  AttachmentSummary,
   PaginatedResponse,
   SuccessResponse,
   Conversation,
@@ -357,6 +358,15 @@ export class SendSevenApiClient {
     const body: Record<string, unknown> = { url };
     if (filename) body.filename = filename;
     return this.post("/attachments/from-url", body);
+  }
+
+  /**
+   * GET /attachments/{id}/summary — AI summary of an inbound image/PDF.
+   * Scope `messages:read`. 403 feature_disabled when AI is off; 404
+   * summary_not_found when no summary exists yet.
+   */
+  async getAttachmentSummary(attachmentId: string): Promise<AttachmentSummary> {
+    return this.get(`/attachments/${encodeURIComponent(attachmentId)}/summary`);
   }
 
   // ─── Messages ───────────────────────────────────────────────────

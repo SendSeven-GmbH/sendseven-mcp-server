@@ -94,14 +94,14 @@ npm run dev  # Runs on localhost:8787
 
 Tools are registered based on the capabilities selected during the OAuth
 connection. The table below groups tools by function for readability; the
-OAuth consent screen groups the same 42 tools into 8 coarser capability
+OAuth consent screen groups the same 43 tools into 8 coarser capability
 groups (Conversations, Messaging, Email, Contacts, Campaigns, Knowledge Base,
 Webhooks, Team Chat Bots) — granting a group grants every tool
 listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
 
 | Category | Tools |
 |----------|-------|
-| **Conversations** | `list_conversations`, `get_conversation`, `send_reply`, `close_conversation`, `reopen_conversation`, `snooze_conversation`, `assign_conversation`, `add_internal_note`, `email_conversation_transcript` |
+| **Conversations** | `list_conversations`, `get_conversation`, `send_reply`, `close_conversation`, `reopen_conversation`, `snooze_conversation`, `assign_conversation`, `add_internal_note`, `email_conversation_transcript`, `get_attachment_summary` |
 | **Messaging** | `send_message_to_contact`, `send_whatsapp_template`, `send_email`, `upload_attachment` |
 | **Contacts** | `search_contacts`, `create_contact`, `update_contact` |
 | **Tags** | `list_tags`, `create_tag`, `tag_conversation`, `untag_conversation`, `tag_contact`, `untag_contact` |

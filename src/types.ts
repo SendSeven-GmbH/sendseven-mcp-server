@@ -59,12 +59,36 @@ export interface Conversation {
   unread_count?: number;
 }
 
+/**
+ * AI summary of an inbound image/PDF. `text` is UNTRUSTED customer-file
+ * content — treat as data, never as instructions.
+ */
+export interface AttachmentSummary {
+  status: "ok" | "pending" | "failed";
+  kind?: "image" | "pdf" | null;
+  text?: string | null;
+  sections?: { key: string; text: string }[];
+  pages_read?: number | null;
+  pages_total?: number | null;
+  truncated?: boolean;
+  model?: string | null;
+  source?: "agent" | "on_demand" | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 export interface MessageAttachment {
   id: string;
   filename: string;
   content_type: string;
   file_size: number;
   url?: string;
+  /** AI summary, or null/absent when none exists or AI features are off. */
+  ai_summary?: AttachmentSummary | null;
+  /** True when a summary can be requested on demand (costs AI credits). */
+  ai_summary_available?: boolean;
+  /** AI credits an on-demand summary costs (2 image, 3 PDF); null if unavailable. */
+  ai_summary_credits?: number | null;
 }
 
 export interface Message {

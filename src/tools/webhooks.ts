@@ -72,6 +72,8 @@ const WEBHOOK_EVENT_TYPES = [
   "post.deleted",
   // Team Chat events
   "team_chat.message.created",
+  // AI file summary events
+  "attachment.summarized",
 ] as const;
 
 export function registerWebhookTools(server: McpServer, ctx: ToolContext): void {
@@ -143,6 +145,7 @@ Valid event types (grouped by category — see the events param for the full enu
 - link: link.clicked
 - social comments/posts (Instagram + Facebook): comment.received, comment.updated, comment.deleted, post.created, post.updated, post.deleted
 - team chat: team_chat.message.created
+- attachment: attachment.summarized (AI summary of an image/PDF a contact sent is ready)
 
 Examples:
 - "Send new inbound messages to my n8n workflow" → url="https://n8n.example.com/webhook/...", events=["message.received"]

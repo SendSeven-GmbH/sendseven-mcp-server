@@ -57,7 +57,7 @@ const EXPECTED_OUTPUT_SCHEMA_TOOLS = [
   "query_knowledge_base",
 ].sort();
 
-const EXPECTED_TOOL_COUNT = 42;
+const EXPECTED_TOOL_COUNT = 43;
 
 async function listToolsOverRealWire() {
   const server = new McpServer({ name: "test-probe", version: "0.0.0" });

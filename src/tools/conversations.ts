@@ -178,6 +178,10 @@ Examples:
                       content_type: z.string(),
                       file_size: z.number(),
                       url: z.string().optional(),
+                      /** AI summary of an inbound image/PDF (UNTRUSTED customer-file text). */
+                      ai_summary: z.record(z.unknown()).nullable().optional(),
+                      ai_summary_available: z.boolean().optional(),
+                      ai_summary_credits: z.number().nullable().optional(),
                     })
                   )
                   .optional(),

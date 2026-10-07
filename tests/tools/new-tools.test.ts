@@ -169,3 +169,19 @@ describe("searchContacts tag_id filter", () => {
     expect(parsed.searchParams.has("tag_id")).toBe(false);
   });
 });
+
+describe("getAttachmentSummary", () => {
+  it("GETs /attachments/{id}/summary and returns the summary object", async () => {
+    mockJson({ status: "ok", kind: "pdf", text: "SUMMARY: x", sections: [], source: "on_demand" });
+    const result = await client.getAttachmentSummary("att/1");
+    expect(result.status).toBe("ok");
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(String(url)).toContain("/attachments/att%2F1/summary");
+    expect((init as RequestInit).method).toBe("GET");
+  });
+
+  it("surfaces summary_not_found as ApiClientError", async () => {
+    mockJson({ detail: { code: "summary_not_found", message: "none" } }, 404);
+    await expect(client.getAttachmentSummary("att-2")).rejects.toBeInstanceOf(ApiClientError);
+  });
+});

@@ -6,6 +6,12 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Added `get_attachment_summary` tool (read the AI summary of an inbound
+  image/PDF; scope `messages:read`), bringing the total to 43 tools.
+- `get_conversation` attachments now include `ai_summary`,
+  `ai_summary_available` and `ai_summary_credits`.
+- `create_webhook` accepts the new `attachment.summarized` event.
+
 Initial public release of the SendSeven MCP server — a hosted, remote Model
 Context Protocol server for the SendSeven unified messaging platform.
 
