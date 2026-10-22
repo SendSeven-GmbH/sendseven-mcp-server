@@ -38,7 +38,7 @@ import type { ToolContext } from "./types.js";
 export class SendSevenMCP extends McpAgent<Env, Record<string, never>, Props> {
   server = new McpServer({
     name: "SendSeven MCP Server",
-    version: "0.3.4",
+    version: "0.3.5",
   });
 
   /** Mutable token state - updated when tokens are refreshed */

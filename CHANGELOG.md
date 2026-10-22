@@ -6,6 +6,12 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- 0.3.5: contact owner support. `search_contacts` filters by `owner_user_id`
+  (user id, `me`, `none`) and returns `owner_user_id` / `owner`;
+  `create_contact` and `update_contact` accept `owner_user_id` (`null` removes).
+- Added `set_out_of_office` and `end_out_of_office` tools (the connected
+  user's own absence and substitute), bringing the total to 45 tools.
+
 - Added `get_attachment_summary` tool (read the AI summary of an inbound
   image/PDF; scope `messages:read`), bringing the total to 43 tools.
 - `get_conversation` attachments now include `ai_summary`,

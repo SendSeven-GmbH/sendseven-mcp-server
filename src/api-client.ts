@@ -12,6 +12,7 @@ import type {
   Conversation,
   Message,
   Contact,
+  Absence,
   ContactList,
   Campaign,
   EmailCampaign,
@@ -528,12 +529,14 @@ export class SendSevenApiClient {
     page_size?: number;
     search?: string;
     tag_id?: string[];
+    owner_user_id?: string;
   } = {}): Promise<PaginatedResponse<Contact>> {
     return this.get("/contacts", {
       page: params.page ?? 1,
       page_size: params.page_size ?? 20,
       search: params.search,
       tag_id: params.tag_id,
+      owner_user_id: params.owner_user_id,
     });
   }
 
@@ -560,6 +563,8 @@ export class SendSevenApiClient {
       email?: string;
       languages?: string;
       birthday?: string;
+      /** Contact owner (team member user id); null removes the owner. */
+      owner_user_id?: string | null;
     }
   ): Promise<Contact> {
     return this.patch(`/contacts/${contactId}`, params);
@@ -804,6 +809,24 @@ export class SendSevenApiClient {
       page: params.page ?? 1,
       page_size: params.page_size ?? 50,
     });
+  }
+
+  // ─── Own availability (out of office) ─────────────────────────────
+
+  async createMyAbsence(params: {
+    starts_at?: string;
+    ends_at?: string | null;
+    substitute_mode?: string;
+    substitute_user_id?: string;
+    substitute_inbox_id?: string;
+    substitute_tag_id?: string;
+    note?: string;
+  }): Promise<Absence> {
+    return this.post("/users/me/absences", params);
+  }
+
+  async endMyAbsencesNow(): Promise<{ success: boolean; ended: number }> {
+    return this.post("/users/me/absences/end-now", {});
   }
 
   // ─── Email Mailboxes ─────────────────────────────────────────────

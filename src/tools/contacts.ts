@@ -23,13 +23,20 @@ Examples:
 - "Find all VIP customers" → look up the "VIP" tag via list_tags, then tag_id=<that tag's id>
 - "Look up +49 170 1234567" → query="+49170123456"
 - "Find contacts named Schmidt" → query="Schmidt"
-- "Find contacts named Schmidt who are also VIP" → query="Schmidt", tag_id=<VIP tag id>`,
+- "Find contacts named Schmidt who are also VIP" → query="Schmidt", tag_id=<VIP tag id>
+- "Which contacts do I own?" → owner_user_id="me"; "contacts nobody owns" → owner_user_id="none"; a colleague's contacts → owner_user_id=<user id from list_team_members>
+
+Each contact carries owner_user_id and owner (name + availability_state) when it has a contact owner.`,
         inputSchema: {
           query: z.string().optional().describe("Search by name, phone number, or email address. Does NOT match tag names - use tag_id for that."),
           tag_id: z
             .union([z.string(), z.array(z.string())])
             .optional()
             .describe("Filter to contacts carrying this tag id (or any of these tag ids). Get tag ids from list_tags - never pass a tag name here."),
+          owner_user_id: z
+            .string()
+            .optional()
+            .describe("Filter by contact owner: a team member's user id (from list_team_members), \"me\" (contacts I own) or \"none\" (contacts without an owner)."),
           page: z.number().optional().describe("Page number (default: 1)"),
           page_size: z.number().optional().describe("Results per page (default: 10, max: 50)"),
         },
@@ -52,6 +59,15 @@ Examples:
                 )
                 .optional(),
               tags: z.array(z.string()),
+              owner_user_id: z.string().nullable().optional(),
+              owner: z
+                .object({
+                  id: z.string(),
+                  name: z.string().nullable().optional(),
+                  availability_state: z.string(),
+                })
+                .nullable()
+                .optional(),
               created_at: z.string(),
             })
           ),
@@ -63,13 +79,13 @@ Examples:
         annotations: { title: "Search Contacts", readOnlyHint: true, destructiveHint: false },
       },
       async (params) => {
-        if (!params.query && !params.tag_id) {
+        if (!params.query && !params.tag_id && !params.owner_user_id) {
           return wrapError({
             error: {
               code: "missing_filter",
-              message: "Provide at least one of query or tag_id.",
+              message: "Provide at least one of query, tag_id or owner_user_id.",
               recoverable: true,
-              suggestion: "Pass a text query (name/phone/email), a tag_id (from list_tags), or both.",
+              suggestion: "Pass a text query (name/phone/email), a tag_id (from list_tags), an owner_user_id, or a combination.",
             },
           });
         }
@@ -79,6 +95,7 @@ Examples:
           const result = await client.searchContacts({
             search: params.query,
             tag_id: params.tag_id === undefined ? undefined : ([] as string[]).concat(params.tag_id),
+            owner_user_id: params.owner_user_id,
             page: params.page ?? 1,
             page_size: params.page_size ?? 10,
           });
@@ -110,6 +127,10 @@ Examples:
                   }))
                 : undefined,
               tags: c.tags?.map((t) => t.name) || [],
+              owner_user_id: c.owner_user_id ?? null,
+              owner: c.owner
+                ? { id: c.owner.id, name: c.owner.name, availability_state: c.owner.availability_state }
+                : null,
               created_at: c.created_at,
             };
           });
@@ -143,6 +164,10 @@ Examples:
         name: z.string().optional().describe("Contact's full name"),
         phone: z.string().optional().describe("Phone number in international format (e.g., +49170123456)"),
         email: z.string().optional().describe("Email address"),
+        owner_user_id: z
+          .string()
+          .optional()
+          .describe("Contact owner: team member user id (from list_team_members). Applied right after creation; needs contacts:update."),
       },
       { title: "Create Contact", readOnlyHint: false, destructiveHint: false },
       async (params) => {
@@ -165,13 +190,29 @@ Examples:
             email: params.email,
           });
 
+          // POST /contacts does not take an owner; set it with a follow-up update.
+          let ownerUserId: string | null | undefined;
+          let ownerError: string | undefined;
+          if (params.owner_user_id) {
+            try {
+              const updated = await client.updateContact(contact.id, { owner_user_id: params.owner_user_id });
+              ownerUserId = updated.owner_user_id ?? params.owner_user_id;
+            } catch (err) {
+              if (!(err instanceof ApiClientError)) throw err;
+              ownerError = err.toMcpError().error.message;
+            }
+          }
+
           return wrapResult({
             success: true,
             contact_id: contact.id,
             name: contact.name || undefined,
             phone: contact.phone,
             email: contact.email,
-            message: "Contact created successfully.",
+            owner_user_id: ownerUserId,
+            message: ownerError
+              ? `Contact created, but the owner could not be set: ${ownerError}`
+              : "Contact created successfully.",
           });
         } catch (err) {
           if (err instanceof ApiClientError) return wrapError(err.toMcpError());
@@ -189,7 +230,9 @@ Examples:
 Examples:
 - "Update Lisa's phone number to +49 170 9999999"
 - "Set the contact's email to new@example.com"
-- "The contact speaks German and English" → languages="de,en"`,
+- "The contact speaks German and English" → languages="de,en"
+- "Make Anna the owner of this contact" → owner_user_id=<Anna's id from list_team_members>
+- "Remove the contact owner" → owner_user_id=null`,
       {
         contact_id: z.string().describe("The contact ID to update"),
         name: z.string().optional().describe("Full name"),
@@ -197,6 +240,11 @@ Examples:
         email: z.string().optional().describe("Email address"),
         languages: z.string().optional().describe("Comma-separated ISO 639-1 language codes the contact speaks (e.g., 'en,de')"),
         birthday: z.string().optional().describe("Date of birth (YYYY-MM-DD)"),
+        owner_user_id: z
+          .string()
+          .nullable()
+          .optional()
+          .describe("Contact owner: team member user id (from list_team_members, must be an active member). null removes the owner. Setting an owner also hands the contact's open unassigned conversations to them."),
       },
       { title: "Update Contact", readOnlyHint: false, destructiveHint: false },
       async (params) => {
@@ -207,7 +255,7 @@ Examples:
               code: "no_fields",
               message: "Provide at least one field to update.",
               recoverable: true,
-              suggestion: "Pass name, phone, email, languages, or birthday.",
+              suggestion: "Pass name, phone, email, languages, birthday, or owner_user_id.",
             },
           });
         }
@@ -221,6 +269,7 @@ Examples:
             name: contact.name || undefined,
             phone: contact.phone,
             email: contact.email,
+            owner_user_id: contact.owner_user_id ?? null,
             message: "Contact updated successfully.",
           });
         } catch (err) {

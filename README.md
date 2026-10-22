@@ -94,7 +94,7 @@ npm run dev  # Runs on localhost:8787
 
 Tools are registered based on the capabilities selected during the OAuth
 connection. The table below groups tools by function for readability; the
-OAuth consent screen groups the same 43 tools into 8 coarser capability
+OAuth consent screen groups the same 45 tools into 8 coarser capability
 groups (Conversations, Messaging, Email, Contacts, Campaigns, Knowledge Base,
 Webhooks, Team Chat Bots) — granting a group grants every tool
 listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
@@ -108,7 +108,7 @@ listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
 | **Campaigns** | `list_contact_lists`, `list_campaigns`, `get_campaign_status`, `create_and_send_campaign`, `list_email_campaigns`, `get_email_campaign_analytics` |
 | **Knowledge Base** | `query_knowledge_base`, `list_knowledge_base_folders` |
 | **Channels** | `list_channels`, `list_email_mailboxes`, `list_verified_email_domains`, `list_whatsapp_templates`, `get_whatsapp_template` |
-| **Team** | `list_team_members` |
+| **Team** | `list_team_members`, `set_out_of_office`, `end_out_of_office` |
 | **Team Chat Bots** | `list_team_chat_channels`, `send_team_chat_channel_message`, `send_team_chat_direct_message` |
 | **Webhooks (Developer)** | `list_webhooks`, `create_webhook`, `delete_webhook` |
 

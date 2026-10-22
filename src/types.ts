@@ -145,6 +145,28 @@ export interface Contact {
   updated_at: string;
   tags?: Tag[];
   custom_fields?: Record<string, string>;
+  /** Team member who owns the contact (null = no owner). */
+  owner_user_id?: string | null;
+  owner?: {
+    id: string;
+    name?: string | null;
+    avatar_url?: string | null;
+    availability_state: "on_shift" | "off_hours" | "absent" | "inactive";
+  } | null;
+}
+
+/** Out-of-office period of a team member (POST /users/me/absences). */
+export interface Absence {
+  id: string;
+  user_id: string;
+  starts_at: string;
+  ends_at?: string | null;
+  substitute_mode: string;
+  substitute_user_id?: string | null;
+  substitute_inbox_id?: string | null;
+  substitute_tag_id?: string | null;
+  note?: string | null;
+  is_active: boolean;
 }
 
 // ─── Contact Lists ──────────────────────────────────────────────────

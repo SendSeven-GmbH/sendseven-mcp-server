@@ -1,6 +1,6 @@
 # Tool Reference
 
-Complete reference for all 43 SendSeven MCP tools. Tools are registered
+Complete reference for all 45 SendSeven MCP tools. Tools are registered
 based on the capabilities you select during the OAuth connection — a tool only
 appears if its required scopes were granted.
 
@@ -239,8 +239,10 @@ membership. Each result includes `channels` (derived channel-type list) and
 `method_type`, `value`, and `is_primary` flag.
 
 **Parameters:** `query` (optional text search), `tag_id` (optional, one tag
-id or an array of tag ids), `page`, `page_size` (optional). At least one of
-`query`/`tag_id` is required.
+id or an array of tag ids), `owner_user_id` (a team member's user ID, `me` or
+`none`), `page`, `page_size` (optional). At least one of
+`query`/`tag_id`/`owner_user_id` is required. Results include `owner_user_id`
+and `owner` (`id`, `name`, `availability_state`).
 
 **Required Scopes:** `contacts:read`
 
@@ -256,6 +258,9 @@ contacts carrying the tag(s). Multiple `tag_id` values match ANY of them
 ### create_contact
 
 Create a new contact. At least one of `name`, `phone`, `email` required.
+Optional `owner_user_id` sets the contact owner right after creation (needs
+`contacts:update` too; if that fails the contact is still created and the
+result says so).
 
 **Required Scopes:** `contacts:create`
 
@@ -266,7 +271,9 @@ Create a new contact. At least one of `name`, `phone`, `email` required.
 Update an existing contact — only provided fields change.
 
 **Parameters:** `contact_id` (required); `name`, `phone`, `email`,
-`languages` (CSV of ISO 639-1 codes), `birthday` (YYYY-MM-DD) (optional)
+`languages` (CSV of ISO 639-1 codes), `birthday` (YYYY-MM-DD),
+`owner_user_id` (contact owner, a team member's user ID; `null` removes the
+owner) (optional)
 
 **Required Scopes:** `contacts:update`
 
@@ -410,6 +417,30 @@ types.
 
 List team members with user IDs, roles, and status — needed for
 `assign_conversation` and `add_internal_note` mentions.
+
+**Required Scopes:** `team:read`
+
+---
+
+### set_out_of_office
+
+Switch the connected user's own out of office on, or schedule it, optionally
+with a substitute.
+
+**Parameters:** `starts_at` (default now), `ends_at` (omit = until switched
+off), `substitute_mode` (`none`, `user`, `round_robin_inbox`,
+`round_robin_tag`, `least_busy_inbox`, `least_busy_tag`),
+`substitute_user_id` / `substitute_inbox_id` / `substitute_tag_id`, `note`
+(all optional)
+
+**Required Scopes:** `team:read` (the endpoint itself acts on the connected
+user and needs no further scope)
+
+---
+
+### end_out_of_office
+
+End the connected user's running out of office ("I'm back").
 
 **Required Scopes:** `team:read`
 
