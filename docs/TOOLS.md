@@ -186,7 +186,7 @@ contact method, a raw phone number/BSUID, or an existing conversation.
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `template` | string | Yes | Template name or ID |
-| `contact_id` | string | One of | Recipient contact |
+| `contact_id` | string | One of | Recipient contact. Needs a WhatsApp ID; no phone fallback (pass `whatsapp_id` otherwise). |
 | `contact_method_id` | string | One of | Specific WhatsApp contact-method UUID (`whatsapp_id` or `whatsapp_bsuid`). If given with `contact_id`, this wins. |
 | `whatsapp_id` | string | One of | Phone number (leading `+` stripped), alphanumeric WhatsApp id, or Business-Scoped User ID (e.g. `US.1349...`, kept verbatim). AUTHENTICATION templates cannot be sent to a BSUID. |
 | `conversation_id` | string | One of | Send into this conversation |

@@ -190,9 +190,9 @@ Examples:
     `Send an approved WhatsApp template message. Templates are required to reach contacts OUTSIDE the 24-hour messaging window. Use list_whatsapp_templates to see available templates and their variables.
 
 Identify the recipient with ANY ONE of:
-- contact_id — a SendSeven contact
+- contact_id — a SendSeven contact. It must have a WhatsApp ID (whatsapp_id or whatsapp_bsuid method). There is NO phone fallback: a contact with only a phone number fails. Pass the number as whatsapp_id instead.
 - contact_method_id — a specific WhatsApp contact-method UUID (whatsapp_id or whatsapp_bsuid). Highest priority: if given with contact_id, this wins.
-- whatsapp_id — sent directly: a phone number (leading '+' is stripped), an alphanumeric WhatsApp id, OR a Business-Scoped User ID like "US.13491208655302741918" (kept verbatim). Note: AUTHENTICATION templates cannot be sent to a BSUID.
+- whatsapp_id — sent directly: a WhatsApp number (leading '+' is stripped; with contact_id it is also added to that contact as a WhatsApp ID), an alphanumeric WhatsApp id, OR a Business-Scoped User ID like "US.13491208655302741918" (kept verbatim). Note: AUTHENTICATION templates cannot be sent to a BSUID.
 - conversation_id — send into an existing conversation
 
 Template body variables (via the variables object):
@@ -218,7 +218,7 @@ Examples:
 - "Send invoice_ready with the PDF" → template="invoice_ready", contact_id="...", header_media_url="https://.../inv.pdf", header_document_filename="invoice-2026-001.pdf"`,
     {
       template: z.string().describe("Template name or template ID"),
-      contact_id: z.string().optional().describe("Recipient contact ID (one of contact_id / contact_method_id / whatsapp_id / conversation_id required)"),
+      contact_id: z.string().optional().describe("Recipient contact ID, needs a WhatsApp ID, no phone fallback (one of contact_id / contact_method_id / whatsapp_id / conversation_id required)"),
       contact_method_id: z.string().optional().describe("Recipient WhatsApp contact-method UUID (whatsapp_id or whatsapp_bsuid). If given with contact_id, this wins."),
       whatsapp_id: z.string().optional().describe("Recipient sent directly: phone number (leading '+' stripped), alphanumeric WhatsApp id, or Business-Scoped User ID like 'US.1349...' (kept verbatim)"),
       conversation_id: z.string().optional().describe("Send into this existing conversation"),
@@ -242,7 +242,7 @@ Examples:
             code: "missing_recipient",
             message: "Provide one of: contact_id, contact_method_id, whatsapp_id, or conversation_id.",
             recoverable: true,
-            suggestion: "Use search_contacts to find the contact, or pass the phone number as whatsapp_id.",
+            suggestion: "Use search_contacts to find the contact, or pass the WhatsApp number as whatsapp_id.",
           },
         });
       }
