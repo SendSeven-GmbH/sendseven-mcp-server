@@ -141,6 +141,8 @@ Users can only grant scopes their SendSeven role already has - a Support
 Agent without campaign permissions never sees campaign tools, regardless of
 what the client requests.
 
+The connected account acts as that member: if a workspace admin limited the member's contact visibility ("only reachable contacts"), contact tools only return the contacts that member can reach, and other contacts behave as not found.
+
 ### API Tokens (Developer)
 Generate a token in SendSeven's dashboard (**Settings > API Tokens**) and pass it as a Bearer header — simpler for CI/CD and scripts, but it doesn't auto-refresh and must be rotated manually.
 

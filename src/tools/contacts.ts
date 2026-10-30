@@ -15,7 +15,7 @@ export function registerContactTools(server: McpServer, ctx: ToolContext): void 
     server.registerTool(
       "search_contacts",
       {
-        description: `Search contacts by name, phone number, or email, and/or filter by tag membership. Returns matching contacts with their available channels, tags, and full contact_methods list (each with its own id, type, value, and is_primary flag).
+        description: `Search contacts by name, phone number, or email, and/or filter by tag membership. Returns matching contacts with their available channels, tags, and full contact_methods list (each with its own id, type, value, and is_primary flag). Results are limited to the contacts the connected member is allowed to see.
 
 \`query\` is free-text over name/email/phone/contact-id only — it does NOT match by tag name. To find contacts carrying a specific tag, use \`tag_id\` instead: call list_tags first to get the tag's id, then pass that id here. If both \`query\` and \`tag_id\` are given, the text search applies within the set of contacts carrying the tag(s); multiple tag_ids match contacts with ANY of them (OR).
 

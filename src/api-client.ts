@@ -107,7 +107,9 @@ export class SendSevenApiClient {
           detail = parsed.detail || errorBody;
         } else if (parsed.detail && typeof parsed.detail === "object") {
           detail = parsed.detail.message || errorBody;
-          apiErrorCode = parsed.detail.code;
+          // Most errors use {detail:{code,message}}; contact_already_exists uses {detail:{detail:"<code>",message}}.
+          const d = parsed.detail as { code?: string; detail?: unknown };
+          apiErrorCode = d.code ?? (typeof d.detail === "string" ? d.detail : undefined);
         } else {
           detail = errorBody;
         }
@@ -934,6 +936,12 @@ export class ApiClientError extends Error {
         this.suggestion = (apiErrorCode && KNOWN_ERROR_SUGGESTIONS[apiErrorCode])
           || "Invalid input. Please check the parameters and try again.";
         break;
+      case 409:
+        this.recoverable = true;
+        this.suggestion = apiErrorCode === "contact_already_exists"
+          ? "This contact already exists but may not be visible to you, so no details are returned. Do not retry the create; ask a workspace admin if you need access to it."
+          : "The request conflicts with the current state of the resource. Check it and try again.";
+        break;
       case 429:
         this.recoverable = true;
         this.suggestion = "Rate limit exceeded. Please wait a moment and try again.";
@@ -965,6 +973,7 @@ export class ApiClientError extends Error {
       case 404: return "not_found";
       case 422: return "validation_error";
       case 429: return "rate_limited";
+      case 409: return this.apiErrorCode ?? "http_409";
       default: return `http_${this.statusCode}`;
     }
   }
