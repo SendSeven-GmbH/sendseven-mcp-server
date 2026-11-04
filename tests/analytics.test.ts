@@ -91,7 +91,7 @@ describe("single version constant", () => {
     expect(MCP_SERVER_VERSION).toBe(pkg.version);
     expect(SERVER_INFO.version).toBe(pkg.version);
     expect(USER_AGENT).toBe(`SendSeven-MCP/${pkg.version}`);
-    expect(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8")).toContain(`"MCP_SERVER_VERSION": "${pkg.version}"`);
+    expect(readFileSync(new URL("../wrangler.jsonc.example", import.meta.url), "utf8")).toContain(`"MCP_SERVER_VERSION": "${pkg.version}"`);
   });
   it("no source file hardcodes a User-Agent version", () => {
     for (const f of ["api-client.ts", "auth.ts", "tools/team-chat.ts"]) {
