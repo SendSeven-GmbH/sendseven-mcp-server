@@ -6,6 +6,10 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - Release
+
+Same code as 0.4.0, released as 1.1.0 so it supersedes the earlier 1.0.0 registry listing.
+
 ## [0.4.0] - Agent Builder
 
 - Added the **Agent Builder**: 24 new tools (69 total) in four new capability groups, all on by default:
