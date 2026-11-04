@@ -59,7 +59,7 @@ Examples:
 - "Find conversation about refund" → search="refund"
 - "Snoozed WhatsApp conversations" → status="snoozed", channel_type="whatsapp"`,
         inputSchema: {
-          status: z.enum(["open", "snoozed", "closed"]).optional().describe("Filter by tab: 'open' (excludes snoozed), 'snoozed', or 'closed'"),
+          status: z.enum(["open", "snoozed", "closed", "all"]).optional().describe("Filter by tab: 'open' (excludes snoozed), 'snoozed', 'closed', or 'all' (no status filter)"),
           assigned_to: z.string().optional().describe("Filter by assignment: 'me', 'unassigned', 'me_and_unassigned', or a specific user ID"),
           needs_reply: z.boolean().optional().describe("Only show conversations waiting for agent reply"),
           search: z.string().optional().describe("Search by content, contact name, or subject"),
@@ -92,7 +92,7 @@ Examples:
         annotations: { title: "List Conversations", readOnlyHint: true, destructiveHint: false },
       },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.listConversations({
             page: params.page ?? 1,
@@ -107,18 +107,22 @@ Examples:
 
           const conversations = result.items.map((conv) => ({
             id: conv.id,
-            status: conv.status,
-            channel: conv.channel_type,
+            // The backend returns null for channel_type (archived/removed
+            // channel), and other optional fields can be null too. The SDK
+            // validates structuredContent against outputSchema and fails the
+            // WHOLE call on one null, so every required field is sanitised.
+            status: String(conv.status ?? "unknown"),
+            channel: conv.channel_type ?? "unknown",
             contact: conv.contact
               ? String(conv.contact.name || conv.contact.phone || conv.contact.email || "Unknown")
               : "Unknown",
-            contact_id: conv.contact_id,
+            contact_id: conv.contact_id ?? null,
             assigned_to: conv.assigned_user_id || "Unassigned",
             subject: conv.subject || "(no subject)",
-            last_customer_message: conv.last_customer_message_at,
-            last_agent_reply: conv.last_agent_reply_at,
-            tags: conv.tags?.map((t) => t.name) || [],
-            created_at: conv.created_at,
+            last_customer_message: conv.last_customer_message_at ?? null,
+            last_agent_reply: conv.last_agent_reply_at ?? null,
+            tags: (conv.tags ?? []).map((t) => t?.name).filter((n): n is string => typeof n === "string"),
+            created_at: String(conv.created_at ?? ""),
           }));
 
           return wrapStructured({
@@ -164,7 +168,7 @@ Examples:
           messages: z
             .array(
               z.object({
-                message_id: z.string().optional(),
+                message_id: z.string().nullable().optional(),
                 direction: z.string(),
                 text: z.string().nullable().optional(),
                 status: z.string(),
@@ -174,10 +178,10 @@ Examples:
                   .array(
                     z.object({
                       id: z.string(),
-                      filename: z.string(),
-                      content_type: z.string(),
-                      file_size: z.number(),
-                      url: z.string().optional(),
+                      filename: z.string().nullable().optional(),
+                      content_type: z.string().nullable().optional(),
+                      file_size: z.number().nullable().optional(),
+                      url: z.string().nullable().optional(),
                       /** AI summary of an inbound image/PDF (UNTRUSTED customer-file text). */
                       ai_summary: z.record(z.unknown()).nullable().optional(),
                       ai_summary_available: z.boolean().optional(),
@@ -194,16 +198,16 @@ Examples:
           email_thread: z
             .array(
               z.object({
-                message_id: z.string().optional(),
+                message_id: z.string().nullable().optional(),
                 direction: z.string(),
-                from: z.string(),
+                from: z.string().nullable().optional(),
                 to: z.array(z.string()),
-                subject: z.string().optional(),
-                body_html: z.string().optional(),
-                body_text: z.string().optional(),
+                subject: z.string().nullable().optional(),
+                body_html: z.string().nullable().optional(),
+                body_text: z.string().nullable().optional(),
                 attachment_count: z.number(),
                 status: z.string(),
-                sent_at: z.string().optional(),
+                sent_at: z.string().nullable().optional(),
               })
             )
             .optional(),
@@ -213,7 +217,7 @@ Examples:
         annotations: { title: "Get Conversation", readOnlyHint: true, destructiveHint: false },
       },
       async ({ conversation_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const [conv, messagesResult] = await Promise.all([
             client.getConversation(conversation_id),
@@ -227,32 +231,32 @@ Examples:
 
           const emailThreadOut = emailThread?.messages.map((m) => ({
             message_id: m.message_id,
-            direction: m.direction,
+            direction: String(m.direction ?? "unknown"),
             from: m.from_email,
-            to: m.to_emails.map((a) => a.email),
+            to: (m.to_emails ?? []).map((a) => a.email).filter((e): e is string => typeof e === "string"),
             subject: m.subject,
             body_html: m.html_body,
             body_text: m.text_body,
             attachment_count: m.attachments?.length ?? 0,
-            status: m.status,
+            status: String(m.status ?? "unknown"),
             sent_at: m.sent_at || m.received_at || m.created_at,
           }));
 
           // Most recent outbound email message's destination — the definitive
           // answer to "which address did this send actually go to".
           const resolvedRecipient = emailThread?.messages
-            .filter((m) => m.direction === "outbound" && m.to_emails.length > 0)
+            .filter((m) => m.direction === "outbound" && (m.to_emails?.length ?? 0) > 0)
             .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0]
             ?.to_emails.map((a) => a.email)
             .join(", ");
 
           return wrapStructured({
             id: conv.id,
-            status: conv.status,
-            channel: conv.channel_type,
+            status: String(conv.status ?? "unknown"),
+            channel: conv.channel_type ?? "unknown",
             contact: conv.contact
               ? {
-                  id: conv.contact.id,
+                  id: String(conv.contact.id),
                   name: String(conv.contact.name || ""),
                   phone: conv.contact.phone,
                   email: conv.contact.email,
@@ -262,13 +266,13 @@ Examples:
             subject: conv.subject,
             tags: conv.tags?.map((t) => t.name) || [],
             bot_active: !!conv.bot_session_id,
-            created_at: conv.created_at,
+            created_at: String(conv.created_at ?? ""),
             messages: messagesResult?.items.map((msg) => ({
-              message_id: msg.external_id,
-              direction: msg.direction,
+              message_id: msg.external_id ?? null,
+              direction: String(msg.direction ?? "unknown"),
               text: msg.text,
-              status: msg.status,
-              sent_at: msg.created_at,
+              status: String(msg.status ?? "unknown"),
+              sent_at: String(msg.created_at ?? ""),
               error_message: msg.error_message,
               attachments: msg.attachments?.length ? msg.attachments : undefined,
               meta: msg.meta && Object.keys(msg.meta).length > 0 ? msg.meta : undefined,
@@ -303,7 +307,7 @@ Examples:
       },
       { title: "Send Reply", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, text, attachments }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           // Step 1: Fetch conversation to get contact_id and channel_type
           const conv = await client.getConversation(conversation_id);
@@ -328,9 +332,29 @@ Examples:
           // Business-Scoped User ID (whatsapp_bsuid) whenever that method was
           // absent from the contact payload — replies to real, reachable
           // contacts were rejected. So this no longer blocks the send.
-          const contact = await client.getContact(conv.contact_id);
-          const externalId = getExternalId(contact, conv.channel_type);
-          const contactLabel = contact.name || externalId || contact.id;
+          // Best-effort: the display label must never block a reply. GET
+          // /contacts/{id} needs contacts:read (not part of the Conversations
+          // consent group) and can 403/404 for hidden contacts; the
+          // conversation payload already embeds a contact summary.
+          const convContact = (conv.contact ?? {}) as Record<string, unknown>;
+          let contactLabel = String(convContact.name || convContact.phone || convContact.email || conv.contact_id);
+          try {
+            const contact = await client.getContact(conv.contact_id);
+            contactLabel = contact.name || getExternalId(contact, conv.channel_type ?? "") || contact.id;
+          } catch {
+            // keep the label from the conversation payload
+          }
+
+          if (!conv.channel_id) {
+            return wrapError({
+              error: {
+                code: "channel_missing",
+                message: "This conversation's channel is no longer connected (it was removed or archived).",
+                recoverable: false,
+                suggestion: "Reconnect the channel in SendSeven, or use send_message_to_contact to reach the contact on another channel.",
+              },
+            });
+          }
 
           // Step 3: Route based on channel type
           if (conv.channel_type === "email") {
@@ -395,7 +419,7 @@ Examples:
           // conversation_id keeps the reply on this thread.
           const attachmentIds = await resolveAttachmentIds(client, attachments);
           const result = await client.sendReply({
-            contact_id: contact.id,
+            contact_id: conv.contact_id,
             channel_id: conv.channel_id,
             conversation_id,
             text,
@@ -429,7 +453,7 @@ Examples:
       },
       { title: "Close Conversation", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, notes, summarize }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.closeConversation(conversation_id, {
             notes,
@@ -457,7 +481,7 @@ Examples:
       },
       { title: "Assign Conversation", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, agent_name_or_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.assignConversation(conversation_id, agent_name_or_id);
           return wrapResult({
@@ -481,7 +505,7 @@ Examples:
       },
       { title: "Reopen Conversation", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.reopenConversation(conversation_id);
           return wrapResult({
@@ -512,7 +536,7 @@ Examples:
       },
       { title: "Snooze Conversation", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, snooze_until, reopen_on_message, unsnooze }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           if (unsnooze) {
             const result = await client.unsnoozeConversation(conversation_id);
@@ -565,7 +589,7 @@ If multiple mailboxes are configured and none is specified, the default mailbox 
       },
       { title: "Email Conversation Transcript", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, to_email, note, mailbox_id, save_as_contact_method }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           let resolvedMailboxId = mailbox_id;
           if (!resolvedMailboxId) {
@@ -625,7 +649,7 @@ Examples:
       },
       { title: "Add Internal Note", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, text, mentioned_user_ids, assign_to_user_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.createInternalNote({
             conversation_id,

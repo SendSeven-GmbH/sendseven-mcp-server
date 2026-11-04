@@ -84,7 +84,7 @@ Examples:
     },
     { title: "Send Email", readOnlyHint: false, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const identifier = params.to.trim();
         const isEmailAddress = identifier.includes("@");

@@ -33,7 +33,7 @@ The SendSeven MCP server supports two authentication methods:
 
 The MCP server requests these scopes:
 
-27 granular scopes exist in total; only the scopes required by the
+41 granular scopes exist in total; only the scopes required by the
 capability group(s) you select are ever requested — see
 [README.md's Authentication section](../README.md#authentication) and
 `SKILL_GROUPS` in `src/config.ts` for the full mapping.
@@ -56,7 +56,21 @@ capability group(s) you select are ever requested — see
 | `campaigns:create` | Create campaigns |
 | `campaigns:send` | Send campaigns |
 | `lists:read` | View contact lists |
+| `lists:create` | Create contact lists (Contact Data Model) |
+| `lists:update` | Add and remove list members (Contact Data Model) |
 | `knowledge_base:read` | Search the knowledge base (AI-powered); list KB folders |
+| `knowledge_base:create` | Add documents, FAQ entries, folders and website crawls (Knowledge Base Authoring) |
+| `knowledge_base:update` | Replace the text of an existing document (Knowledge Base Authoring) |
+| `custom_fields:read` | List contact custom fields (Contact Data Model) |
+| `custom_fields:create` | Create custom fields (Contact Data Model) |
+| `custom_fields:update` | Edit custom fields (Contact Data Model) |
+| `automation:read` | View agents, skills and bot rules (Agent Builder) |
+| `automation:create` | Create agents and skills (Agent Builder) |
+| `automation:update` | Edit agent drafts and skills, run agent tests (Agent Builder) |
+| `automation:publish` | Publish and switch on agents, attach them to channels (Agent Builder; only used after an explicit confirmation) |
+| `flows:read` | View and validate flows (Flows) |
+| `flows:write` | Save flow drafts and run flow tests (Flows) |
+| `flows:publish` | Publish flows (Flows; only used after an explicit confirmation) |
 | `channels:read` | View channel status, mailboxes, verified domains, and WhatsApp templates |
 | `notes:create` | Add conversation notes |
 | `tags:read` | View tags |
@@ -69,6 +83,8 @@ capability group(s) you select are ever requested — see
 | `webhooks:delete` | Delete webhook endpoints |
 
 Users can only grant scopes they have permission for. For example, a Support Agent without `campaigns:create` will get a token without that scope, and campaign tools won't be available.
+
+A tool whose permission was not granted when you connected is not offered. The always-available `check_permissions` tool lists granted and missing capabilities, and a call that is denied returns `permission_missing` (reconnect and approve the capability) or, when your role is the cause, `forbidden` (ask a workspace admin).
 
 ### Revoking Access
 

@@ -29,7 +29,7 @@ Examples:
     },
     { title: "List Email Campaigns", readOnlyHint: true, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.listEmailCampaigns({
           page: params.page ?? 1,
@@ -84,7 +84,7 @@ Examples:
     },
     { title: "Get Email Campaign Analytics", readOnlyHint: true, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         try {
           const analytics = await client.getEmailCampaignAnalytics(params.campaign_id);

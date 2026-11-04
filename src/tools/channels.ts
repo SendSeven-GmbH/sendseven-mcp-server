@@ -27,7 +27,7 @@ Examples:
     {},
     { title: "List Channels", readOnlyHint: true, destructiveHint: false },
     async () => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const [channels, health] = await Promise.all([
           client.listChannels(),
@@ -97,7 +97,7 @@ Examples:
     {},
     { title: "List Email Mailboxes", readOnlyHint: true, destructiveHint: false },
     async () => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const mailboxes = await client.listEmailMailboxes();
 
@@ -131,7 +131,7 @@ Examples:
     {},
     { title: "List Verified Email Domains", readOnlyHint: true, destructiveHint: false },
     async () => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const providers = await client.listEmailProviders();
 
@@ -177,7 +177,7 @@ Examples:
     },
     { title: "List WhatsApp Templates", readOnlyHint: true, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.listWhatsAppTemplates({
           status: params.status,
@@ -227,7 +227,7 @@ Examples:
     },
     { title: "Get WhatsApp Template", readOnlyHint: true, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const t = await client.getWhatsAppTemplate(params.template_id);
 

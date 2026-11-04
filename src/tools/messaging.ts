@@ -51,6 +51,17 @@ async function resolveAttachmentIds(
   return ids;
 }
 
+/** Phone-like: optional +, 7+ digits, spaces/dashes/dots/parentheses allowed. */
+export function looksLikePhone(value: string): boolean {
+  return /^\+?[\d\s().-]{7,}$/.test(value) && (value.match(/\d/g) ?? []).length >= 7;
+}
+
+/** Keep a leading + and digits only: "+49 (170) 123-4567" -> "+491701234567". */
+export function normalisePhone(value: string): string {
+  const digits = value.replace(/[^\d]/g, "");
+  return value.trim().startsWith("+") ? `+${digits}` : digits;
+}
+
 export function registerMessagingTools(server: McpServer, ctx: ToolContext): void {
   if (!hasAnyScope(ctx.scopes, ["messages:create"])) return;
 
@@ -76,32 +87,53 @@ Examples:
     },
     { title: "Send Message to Contact", readOnlyHint: false, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const identifier = params.to.trim();
 
         // Step 1: Find or create the contact
         let contact: Contact | undefined;
 
-        const contacts = await client.searchContacts({ search: identifier, page_size: 5 });
+        const isEmail = identifier.includes("@");
+        const isPhone = looksLikePhone(identifier);
 
-        if (contacts.items.length > 0) {
-          contact = contacts.items[0];
-        } else if (params.create_if_not_exists !== false) {
-          const isEmail = identifier.includes("@");
-          const isPhone = /^\+?\d[\d\s-]{6,}$/.test(identifier);
-          contact = await client.createContact({
-            phone: isPhone ? identifier : undefined,
-            email: isEmail ? identifier : undefined,
-            name: !isEmail && !isPhone ? identifier : undefined,
-          });
+        // Phone numbers are stored normalised (e.g. "+491701234567"); a free-form
+        // "+49 170 1234567" would miss the stored value, "create" and then hit a
+        // duplicate-contact 409. Search the normalised form first.
+        const searchTerms = isPhone ? [normalisePhone(identifier), identifier] : [identifier];
+        for (const term of new Set(searchTerms)) {
+          const found = await client.searchContacts({ search: term, page_size: 5 });
+          if (found.items.length > 0) {
+            contact = found.items[0];
+            break;
+          }
+        }
+
+        if (contact) {
+          // found
+        } else if (params.create_if_not_exists !== false && (isPhone || isEmail)) {
+          try {
+            contact = await client.createContact({
+              phone: isPhone ? normalisePhone(identifier) : undefined,
+              email: isEmail ? identifier : undefined,
+            });
+          } catch (err) {
+            // Workspaces with "don't allow duplicates" answer 409 duplicate_contact
+            // when the search missed an existing contact: use that contact.
+            const dupes = err instanceof ApiClientError && err.statusCode === 409 ? err.extra?.duplicates : undefined;
+            const dupeId = Array.isArray(dupes) ? (dupes[0] as { id?: unknown } | undefined)?.id : undefined;
+            if (typeof dupeId !== "string") throw err;
+            contact = await client.getContact(dupeId);
+          }
         } else {
           return wrapError({
             error: {
               code: "contact_not_found",
               message: `No contact found matching '${identifier}'`,
               recoverable: true,
-              suggestion: "Try searching by phone number, email, or name. Or set create_if_not_exists=true to auto-create.",
+              suggestion: isPhone || isEmail
+                ? "Check the number/address, or set create_if_not_exists=true (default) to create the contact."
+                : "A name alone cannot be auto-created (no way to reach it). Use search_contacts to find the right contact, or pass a phone number / email in 'to'.",
             },
           });
         }
@@ -124,7 +156,8 @@ Examples:
         let selectedChannel: AvailableChannelResponse;
 
         if (params.channel && params.channel !== "auto") {
-          const match = availableChannels.find((ch) => ch.channel_type === params.channel);
+          const match = availableChannels.find((ch) => ch.channel_type === params.channel && ch.status !== "unavailable")
+            ?? availableChannels.find((ch) => ch.channel_type === params.channel);
           if (!match) {
             const available = availableChannels.map((ch) => ch.channel_type).join(", ");
             return wrapError({
@@ -138,8 +171,37 @@ Examples:
           }
           selectedChannel = match;
         } else {
-          // Auto: pick the first available channel
-          selectedChannel = availableChannels[0];
+          // Auto: free-form-sendable channels first (email is excluded: use
+          // send_email), then the rest so the error below is specific.
+          const usable = availableChannels.filter((ch) => ch.channel_type !== "email");
+          selectedChannel =
+            usable.find((ch) => ch.status === "available") ??
+            usable.find((ch) => ch.status === "template_required") ??
+            usable[0] ??
+            availableChannels[0];
+        }
+
+        // Pre-flight the known BUSINESS rules so the caller gets an actionable
+        // error instead of a backend 400.
+        if (selectedChannel.status === "template_required" || selectedChannel.window_status?.requires_template) {
+          return wrapError({
+            error: {
+              code: "whatsapp_window_expired",
+              message: `The WhatsApp 24-hour messaging window with ${contact.name || identifier} is closed, so a free-form message cannot be sent.`,
+              recoverable: true,
+              suggestion: "This is a WhatsApp rule, not a bug. Use send_whatsapp_template (see list_whatsapp_templates) to re-engage the contact.",
+            },
+          });
+        }
+        if (selectedChannel.channel_type === "email") {
+          return wrapError({
+            error: {
+              code: "use_send_email",
+              message: "The only reachable channel for this contact is email.",
+              recoverable: true,
+              suggestion: "Use the send_email tool for email.",
+            },
+          });
         }
 
         // Step 3: Confirm the resolved channel has a deliverable identifier.
@@ -247,7 +309,7 @@ Examples:
         });
       }
 
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.sendWhatsAppTemplate(params.template, {
           contact_id: params.contact_id,

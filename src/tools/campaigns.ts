@@ -29,7 +29,7 @@ Examples:
       },
       { title: "List Contact Lists", readOnlyHint: true, destructiveHint: false },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.listContactLists({
             page: params.page ?? 1,
@@ -81,7 +81,7 @@ Examples:
       },
       { title: "List Campaigns", readOnlyHint: true, destructiveHint: false },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const campaigns = await client.listCampaigns({
             campaign_status: params.status,
@@ -122,7 +122,7 @@ Examples:
       },
       { title: "Get Campaign Status", readOnlyHint: true, destructiveHint: false },
       async ({ campaign_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const stats = await client.getCampaignStatistics(campaign_id);
           return wrapResult({
@@ -200,7 +200,7 @@ Examples:
     },
     { title: "Create and Send Campaign", readOnlyHint: false, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         if (!params.list_ids || params.list_ids.length === 0) {
           return wrapError({

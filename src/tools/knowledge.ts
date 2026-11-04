@@ -41,7 +41,7 @@ Examples:
       annotations: { title: "Query Knowledge Base", readOnlyHint: true, destructiveHint: false },
     },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.searchKnowledgeBase({
           query: params.query,
@@ -49,14 +49,19 @@ Examples:
           limit: params.limit ?? 5,
         });
 
+        // The backend returns answer=null when nothing relevant is found and
+        // null title/uri/score on some sources; outputSchema validation would
+        // fail the whole call on any null, so sanitise (and drop nulls).
         return wrapStructured({
-          answer: result.answer,
-          sources: result.sources.map((s) => ({
-            text: s.excerpt?.substring(0, 200) + (s.excerpt && s.excerpt.length > 200 ? "..." : ""),
-            title: s.title,
-            uri: s.uri,
-            relevance_score: s.score,
-          })),
+          answer: result.answer ?? "No relevant information was found in the knowledge base.",
+          sources: (result.sources ?? []).map((s) => {
+            const out: Record<string, unknown> = {};
+            if (typeof s.excerpt === "string") out.text = s.excerpt.substring(0, 200) + (s.excerpt.length > 200 ? "..." : "");
+            if (typeof s.title === "string") out.title = s.title;
+            if (typeof s.uri === "string") out.uri = s.uri;
+            if (typeof s.score === "number") out.relevance_score = s.score;
+            return out;
+          }),
         });
       } catch (err) {
         if (err instanceof ApiClientError) return wrapError(err.toMcpError());
@@ -75,7 +80,7 @@ Examples:
     {},
     { title: "List Knowledge Base Folders", readOnlyHint: true, destructiveHint: false },
     async () => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.getKnowledgeBaseFolders();
 

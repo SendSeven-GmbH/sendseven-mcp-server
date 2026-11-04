@@ -31,14 +31,23 @@ import { registerTeamTools } from "./tools/team.js";
 import { registerTeamChatTools } from "./tools/team-chat.js";
 import { registerWebhookTools } from "./tools/webhooks.js";
 import { registerAttachmentTools } from "./tools/attachments.js";
+import { registerKnowledgeAuthoringTools } from "./tools/kb-authoring.js";
+import { registerContactDataTools } from "./tools/contact-data.js";
+import { registerAgentBuilderTools } from "./tools/agent-builder.js";
+import { registerFlowTools } from "./tools/flow-builder.js";
+import { registerPermissionTools } from "./tools/permissions.js";
+import { registerGuideResources } from "./resources/guides.js";
+import { registerAgentBuilderPrompts } from "./prompts/templates.js";
 import type { ToolContext } from "./types.js";
+import { instrumentServer } from "./analytics.js";
+import { MCP_SERVER_VERSION, USER_AGENT } from "./version.js";
 
 // ─── MCP Agent (Durable Object) ─────────────────────────────────
 
 export class SendSevenMCP extends McpAgent<Env, Record<string, never>, Props> {
   server = new McpServer({
     name: "SendSeven MCP Server",
-    version: "0.3.5",
+    version: MCP_SERVER_VERSION,
   });
 
   /** Mutable token state - updated when tokens are refreshed */
@@ -71,7 +80,10 @@ export class SendSevenMCP extends McpAgent<Env, Record<string, never>, Props> {
 
           const response = await fetch(`${authUrl}/token`, {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": USER_AGENT,
+            },
             body: body.toString(),
           });
 
@@ -130,6 +142,14 @@ export class SendSevenMCP extends McpAgent<Env, Record<string, never>, Props> {
       tokenRefresher,
     };
 
+    // Usage analytics: wraps tool registration so EVERY tool is covered.
+    // Metadata only (never arguments/results); no-op without the ANALYTICS binding.
+    instrumentServer(this.server, {
+      dataset: this.env.ANALYTICS,
+      tenantId: this.props.tenantId,
+      userId: this.props.userId,
+    });
+
     // Register tools based on user's scopes
     registerConversationTools(this.server, ctx);
     registerMessagingTools(this.server, ctx);
@@ -144,6 +164,15 @@ export class SendSevenMCP extends McpAgent<Env, Record<string, never>, Props> {
     registerTeamChatTools(this.server, ctx);
     registerWebhookTools(this.server, ctx);
     registerAttachmentTools(this.server, ctx);
+    // Agent Builder (v0.4.0)
+    registerKnowledgeAuthoringTools(this.server, ctx);
+    registerContactDataTools(this.server, ctx);
+    registerAgentBuilderTools(this.server, ctx);
+    registerFlowTools(this.server, ctx);
+    // Always available: explains missing capabilities (tools of ungranted scopes are not registered).
+    registerPermissionTools(this.server, ctx);
+    registerGuideResources(this.server);
+    registerAgentBuilderPrompts(this.server);
   }
 }
 

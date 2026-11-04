@@ -234,7 +234,7 @@ These are configured in `wrangler.jsonc` under `vars` and do not need `wrangler 
 | `SENDSEVEN_API_URL` | `https://api.sendseven.com/api/v1`            | SendSeven API base URL |
 | `SENDSEVEN_AUTH_URL` | `https://api.sendseven.com/api/v1/oauth-apps` | OAuth authorization endpoint |
 | `MCP_SERVER_NAME` | `SendSeven MCP Server`                        | Server name reported to MCP clients |
-| `MCP_SERVER_VERSION` | `0.3.5`                                       | Server version reported to MCP clients |
+| `MCP_SERVER_VERSION` | `0.4.0`                                       | Server version reported to MCP clients |
 
 To point a local or self-hosted deployment at a different SendSeven environment, override `SENDSEVEN_API_URL` and `SENDSEVEN_AUTH_URL` in `.dev.vars`:
 
@@ -335,3 +335,26 @@ One or more secrets are missing. Run `npx wrangler secret list` and verify all t
 ### "Durable Object migration required"
 
 If you see migration errors, ensure the `migrations` section in `wrangler.jsonc` has the correct tag. Durable Object migrations run automatically on deploy.
+
+
+## Usage analytics (Workers Analytics Engine)
+
+Every tool call writes one data point to the `ANALYTICS` binding (dataset
+`sendseven_mcp_tool_calls`, see `src/analytics.ts`): tool name, workspace id,
+opaque user id, MCP client name (from `clientInfo`), outcome, short error code,
+latency and server version. Tool arguments, results and error messages are never
+recorded, and a failed write never affects the tool call. Without the binding
+nothing is recorded.
+
+Setup (once per Cloudflare account):
+
+1. Enable Analytics Engine: Cloudflare dashboard > Workers & Pages > Analytics Engine
+   (the dataset is created on the first write).
+2. `npx wrangler deploy` (the binding is declared in `wrangler.jsonc`).
+3. Create an API token with **Account > Account Analytics > Read**, then:
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... node scripts/usage-report.mjs --days 30
+```
+
+Analytics Engine keeps data for 90 days.

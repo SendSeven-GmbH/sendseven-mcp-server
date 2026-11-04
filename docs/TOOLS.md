@@ -1,6 +1,6 @@
 # Tool Reference
 
-Complete reference for all 45 SendSeven MCP tools. Tools are registered
+Complete reference for all 69 SendSeven MCP tools. Tools are registered
 based on the capabilities you select during the OAuth connection — a tool only
 appears if its required scopes were granted.
 
@@ -8,7 +8,8 @@ A handful of high-traffic read tools additionally declare an `outputSchema`
 and return `structuredContent` alongside the usual text content, for clients
 that prefer typed structured results over parsing JSON out of a text block:
 `list_conversations`, `get_conversation`,
-`search_contacts`, and `query_knowledge_base`. All other tools return
+`search_contacts`, and `query_knowledge_base`. The Agent Builder tools (below) all declare an `outputSchema` with nullable
+fields. All other tools return
 text-only content (a JSON blob inside a single text block) as before.
 
 ## Conversation Tools
@@ -20,14 +21,14 @@ List and filter customer conversations.
 **Parameters:**
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `status` | string | No | Tab filter: "open" (excludes snoozed), "snoozed", "closed" |
+| `status` | string | No | Tab filter: "open" (excludes snoozed), "snoozed", "closed", "all" (no status filter) |
 | `assigned_to` | string | No | "me", "unassigned", "me_and_unassigned", or a user ID |
 | `needs_reply` | boolean | No | Only conversations waiting for agent reply |
 | `search` | string | No | Search by content, contact, or subject |
 | `channel_type` | string | No | "whatsapp", "telegram", "sms", "email", "messenger", "instagram", "live_chat", "rcs" |
 | `contact_id` | string | No | Only conversations with this contact |
 | `page` | number | No | Page number (default: 1) |
-| `page_size` | number | No | Results per page (default: 10, max: 50) |
+| `page_size` | number | No | Results per page (default: 10; values above the API maximum of 100 are clamped) |
 
 **Required Scopes:** `conversations:read`
 
@@ -166,13 +167,18 @@ lookup/creation, channel selection, and delivery.
 **Parameters:**
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `to` | string | Yes | Phone number or contact name |
+| `to` | string | Yes | Phone number, email address or the name of an existing contact. Phone numbers are normalised before lookup. A bare name is never auto-created. |
 | `message` | string | Yes | Message content |
 | `channel` | string | No | "auto" (default), "whatsapp", "telegram", "messenger", "instagram", "sms" |
 | `attachments` | array | No | Files to attach — each entry EITHER `{id}` (a previously-uploaded attachment) OR `{url, filename?}` (a public URL SendSeven downloads server-side). On WhatsApp/Telegram the text is delivered as the caption of the first attachment. |
 | `create_if_not_exists` | boolean | No | Create contact if not found (default: true) |
 
 **Required Scopes:** `messages:create`, `contacts:read`
+
+**Channel selection and business errors:** `auto` skips email (use `send_email`) and prefers
+a channel that can send free-form. If the only reachable WhatsApp channel is outside
+the 24-hour window the tool returns `whatsapp_window_expired` (a WhatsApp rule, not a
+failure) and points to `send_whatsapp_template`. `send_reply` returns the same code.
 
 ---
 
@@ -566,6 +572,59 @@ endpoint to enumerate previously-created attachments; save the returned
 
 ---
 
+## Agent Builder Tools
+
+Build, test and (with your confirmation) publish Conversational Agents from your AI assistant. Your own assistant writes the persona, skills and flows; SendSeven stores, validates and tests them. Four capability groups (all on by default, each can be switched off at connect time): **Agent Builder** (`automation:*`), **Knowledge Base Authoring**, **Contact Data Model** and **Flows**. Conversational Agents need the Professional plan or higher (otherwise `plan_upgrade_required`).
+
+Safety rules built into the tools:
+- `create_agent` always creates an unpublished, inactive draft. Nothing answers customers until `publish_agent` is called with `confirm=true`, which the assistant must only do after you say so. `publish_flow` works the same way.
+- Edits (`update_agent_draft`, `set_agent_skills`, `set_agent_knowledge_sources`) go to the agent's draft, never the live agent.
+- Creates look up by name/slug/key first, so running a step twice never duplicates.
+- Web search and reading images, PDFs and voice messages are off unless you enable them.
+
+Guided workflows are available as MCP prompts: `build_conversational_agent`, `write_skill`, `design_agent_flow`. Reference guides are MCP resources, generated from the developer documentation: `sendseven://guides/flow-format-spec`, `sendseven://guides/skills-and-goals`, `sendseven://guides/agent-fields`, `sendseven://guides/run-assistant-node`.
+
+### Knowledge Base authoring
+| Tool | Purpose | Scope |
+|------|---------|-------|
+| `list_knowledge_base_documents` | Documents with indexing status (`ready`, `pending_ingestion`, `failed`) | `knowledge_base:read` |
+| `create_knowledge_base_folder` | Create a folder (idempotent by name + parent) | `knowledge_base:create` |
+| `upsert_knowledge_base_document` | Add markdown text, or replace the document with the same title | `knowledge_base:create` (+ `update` to replace) |
+| `crawl_website` | `action`: `preview`, `start` (default 50 pages), `status`, `cancel` | `knowledge_base:create` |
+| `upsert_faq_entries` | Up to 50 Q&A pairs; near-duplicates are skipped | `knowledge_base:create` |
+
+### Data model
+| Tool | Purpose | Scope |
+|------|---------|-------|
+| `manage_custom_fields` | `action`: `list`, `create` (idempotent by key), `update`. `ai_access` controls agent use | `custom_fields:read/create/update` |
+| `manage_lists` | `action`: `list`, `create` (idempotent by name), `add_members`, `remove_members` | `lists:read/create/update` |
+| `create_tag` / `list_tags` | Existing tag tools are reused | `tags:*` |
+
+### Agents, skills and deployment
+| Tool | Purpose | Scope |
+|------|---------|-------|
+| `list_agents`, `get_agent` | Browse agents; `get_agent` returns the draft document, revision and publish blockers | `automation:read` |
+| `create_agent` | Unpublished, inactive draft; idempotent by name | `automation:create` |
+| `update_agent_draft` | Change draft fields; `base_revision` with one automatic retry on conflict | `automation:update` |
+| `set_agent_skills`, `set_agent_knowledge_sources` | Replace the draft's skill links / knowledge sources | `automation:update` |
+| `test_agent` | One test turn (draft by default); reports the AI credits the turn used. Nothing is sent to customers | `automation:update` |
+| `get_agent_readiness` | Blockers, indexing status, routing and ordered next steps | `automation:read` |
+| `publish_agent` | Publish (and optionally switch on). Requires `confirm=true`. Destructive annotation | `automation:publish` |
+| `attach_agent_to_channel` | Activation rule on the agent's bot for channels/widgets; idempotent | `automation:publish` |
+| `upsert_skill` | Create or update by slug; every content change creates a new version; supports goals | `automation:create/update` |
+| `manage_skill_versions` | `action`: `list`, `restore` | `automation:read/update` |
+
+### Flows
+| Tool | Purpose | Scope |
+|------|---------|-------|
+| `validate_flow` | Save checks without saving; `errors[{path, code, message}]` | `flows:read` or `flows:write` |
+| `save_flow_draft` | Create/update a DRAFT flow by name; refuses to change a live flow | `flows:write` |
+| `publish_flow` | Publish. Requires `confirm=true`. Destructive annotation | `flows:publish` |
+| `test_flow` | `action`: `start`, `reply`, `trace`, `stop` in the test sandbox | `flows:write` |
+
+### check_permissions
+Always available, needs no scope. Lists which capabilities this connection has (`granted`, `partial`, `missing`) and how to get the missing ones. Tools whose permission was not granted at connect time are not offered, so use this to answer "why can't you build an agent?".
+
 ## Webhook Tools (Developer)
 
 | Tool | Description | Scopes |
@@ -598,7 +657,11 @@ All tools return structured errors:
 | Code | Meaning | Recoverable |
 |------|---------|-------------|
 | `unauthorized` | Token expired or invalid | No |
-| `forbidden` | Insufficient permissions | No |
+| `forbidden` | Your SendSeven user role does not allow this; ask a workspace admin | No |
+| `permission_missing` | This connection was not granted the needed permission (`missing_scopes`, `capabilities` are listed). Reconnect SendSeven in your AI client and approve the capability | No |
+| `plan_upgrade_required` | The feature is not in the workspace plan (e.g. Conversational Agents need Professional or higher) | No |
+| `draft_conflict` | The agent draft changed since `base_revision`; re-read it with `get_agent` | Yes |
+| `confirmation_required` (result field) | `publish_agent` / `publish_flow` were called without `confirm=true`; nothing changed | Yes |
 | `not_found` | Resource doesn't exist | Yes |
 | `validation_error` | Invalid input | Yes |
 | `rate_limited` | Too many requests | Yes |

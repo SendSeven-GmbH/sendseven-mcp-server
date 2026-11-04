@@ -42,8 +42,23 @@ const MCP_OAUTH_CONFIG = {
     "campaigns:send",
     // Lists
     "lists:read",
+    "lists:create",
+    "lists:update",
+    // Agent Builder (Nov 2026)
+    "automation:read",
+    "automation:create",
+    "automation:update",
+    "automation:publish",
+    "flows:read",
+    "flows:write",
+    "flows:publish",
+    "custom_fields:read",
+    "custom_fields:create",
+    "custom_fields:update",
     // Knowledge Base
     "knowledge_base:read",
+    "knowledge_base:create",
+    "knowledge_base:update",
     // Channels
     "channels:read",
     // Notes

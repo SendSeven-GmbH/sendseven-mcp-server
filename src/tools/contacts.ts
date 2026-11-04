@@ -90,7 +90,7 @@ Each contact carries owner_user_id and owner (name + availability_state) when it
           });
         }
 
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.searchContacts({
             search: params.query,
@@ -131,7 +131,7 @@ Each contact carries owner_user_id and owner (name + availability_state) when it
               owner: c.owner
                 ? { id: c.owner.id, name: c.owner.name, availability_state: c.owner.availability_state }
                 : null,
-              created_at: c.created_at,
+              created_at: String(c.created_at ?? ""),
             };
           });
 
@@ -182,7 +182,7 @@ Examples:
           });
         }
 
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const contact = await client.createContact({
             name: params.name,
@@ -260,7 +260,7 @@ Examples:
           });
         }
 
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const contact = await client.updateContact(contact_id, fields);
           return wrapResult({

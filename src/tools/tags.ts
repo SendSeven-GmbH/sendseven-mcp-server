@@ -31,7 +31,7 @@ Examples:
       },
       { title: "List Tags", readOnlyHint: true, destructiveHint: false },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.listTags({
             search: params.search,
@@ -75,7 +75,7 @@ Examples:
       },
       { title: "Create Tag", readOnlyHint: false, destructiveHint: false },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const tag = await client.createTag({
             name: params.name,
@@ -108,7 +108,7 @@ Examples:
       },
       { title: "Tag Conversation", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, tag_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           await client.addTagToConversation(conversation_id, tag_id);
           return wrapResult({
@@ -131,7 +131,7 @@ Examples:
       },
       { title: "Untag Conversation", readOnlyHint: false, destructiveHint: false },
       async ({ conversation_id, tag_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           await client.removeTagFromConversation(conversation_id, tag_id);
           return wrapResult({
@@ -156,7 +156,7 @@ Examples:
       },
       { title: "Tag Contact", readOnlyHint: false, destructiveHint: false },
       async ({ contact_id, tag_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           await client.addTagToContact(contact_id, tag_id);
           return wrapResult({
@@ -179,7 +179,7 @@ Examples:
       },
       { title: "Untag Contact", readOnlyHint: false, destructiveHint: false },
       async ({ contact_id, tag_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           await client.removeTagFromContact(contact_id, tag_id);
           return wrapResult({

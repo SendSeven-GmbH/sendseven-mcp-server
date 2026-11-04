@@ -42,7 +42,8 @@ export interface Conversation {
   tenant_id: string;
   contact_id: string;
   channel_id: string;
-  channel_type: ChannelType;
+  /** Null when the conversation's channel was removed/archived. */
+  channel_type: ChannelType | null;
   status: ConversationStatus;
   subject?: string;
   assigned_user_id?: string;

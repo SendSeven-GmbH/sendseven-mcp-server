@@ -92,7 +92,7 @@ Examples:
       {},
       { title: "List Webhooks", readOnlyHint: true, destructiveHint: false },
       async () => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const webhooks = await client.listWebhooks();
           return wrapResult({
@@ -161,7 +161,7 @@ Examples:
       },
       { title: "Create Webhook", readOnlyHint: false, destructiveHint: false },
       async ({ name, url, events, authorization_header }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const webhook = await client.createWebhook({
             name,
@@ -195,7 +195,7 @@ Examples:
       },
       { title: "Delete Webhook", readOnlyHint: false, destructiveHint: true },
       async ({ webhook_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           await client.deleteWebhook(webhook_id);
           return wrapResult({

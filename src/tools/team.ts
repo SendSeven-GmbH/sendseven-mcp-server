@@ -26,7 +26,7 @@ Examples:
       },
       { title: "List Team Members", readOnlyHint: true, destructiveHint: false },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.listTeamMembers({
             page: params.page ?? 1,
@@ -81,7 +81,7 @@ Examples:
       },
       { title: "Set Out of Office", readOnlyHint: false, destructiveHint: false },
       async (params) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const absence = await client.createMyAbsence({
             ...params,
@@ -110,7 +110,7 @@ Examples:
       {},
       { title: "End Out of Office", readOnlyHint: false, destructiveHint: false },
       async () => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const result = await client.endMyAbsencesNow();
           return wrapResult({

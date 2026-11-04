@@ -5,6 +5,8 @@
  * Used by MCP tools to interact with the SendSeven backend.
  */
 
+import { USER_AGENT } from "./version.js";
+import { capabilitiesForScopes, parseRequiredScopes, scopeGranted } from "./permissions.js";
 import type {
   AttachmentSummary,
   PaginatedResponse,
@@ -42,11 +44,27 @@ export class SendSevenApiClient {
   private baseUrl: string;
   private accessToken: string;
   private tokenRefresher?: () => Promise<string>;
+  /** Scopes this MCP connection was granted (to tell a missing grant from a role denial on 403). */
+  private grantedScopes?: string[];
 
-  constructor(baseUrl: string, accessToken: string, tokenRefresher?: () => Promise<string>) {
+  constructor(baseUrl: string, accessToken: string, tokenRefresher?: () => Promise<string>, grantedScopes?: string[]) {
     this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.accessToken = accessToken;
     this.tokenRefresher = tokenRefresher;
+    this.grantedScopes = grantedScopes;
+  }
+
+  /**
+   * Generic call used by the Agent Builder tools (agents, skills, flows,
+   * knowledge, custom fields, lists, bot rules). Same auth, refresh and error
+   * mapping as the typed methods.
+   */
+  async call<T = unknown>(
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+    path: string,
+    options: { body?: unknown; params?: Record<string, string | number | boolean | string[] | undefined> } = {}
+  ): Promise<T> {
+    return this.request<T>(method, path, options);
   }
 
   // ─── HTTP Helpers ────────────────────────────────────────────────
@@ -65,6 +83,15 @@ export class SendSevenApiClient {
     if (options.params) {
       for (const [key, value] of Object.entries(options.params)) {
         if (value === undefined || value === null) continue;
+        if (key === "page_size" || key === "page") {
+          // Backend rejects page_size > 100 / < 1 with a 422; LLM callers often
+          // overshoot. Clamp instead of failing the whole tool call.
+          const n = Math.floor(Number(value));
+          if (Number.isFinite(n)) {
+            url.searchParams.set(key, String(key === "page" ? Math.max(1, n) : Math.min(100, Math.max(1, n))));
+            continue;
+          }
+        }
         if (Array.isArray(value)) {
           // Repeatable query param (e.g. ?tag_id=a&tag_id=b) - matches
           // FastAPI's Query(List[str]) parsing on the backend.
@@ -78,7 +105,7 @@ export class SendSevenApiClient {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.accessToken}`,
       "Content-Type": "application/json",
-      "User-Agent": "SendSeven-MCP/0.2.0",
+      "User-Agent": USER_AGENT,
     };
 
     const response = await fetch(url.toString(), {
@@ -101,15 +128,50 @@ export class SendSevenApiClient {
       const errorBody = await response.text();
       let detail: string;
       let apiErrorCode: string | undefined;
+      let errorExtra: Record<string, unknown> | undefined;
       try {
         const parsed = JSON.parse(errorBody) as ApiError;
+        // Structured 403 from the API: {detail:"...", code:"missing_scope", required_scopes, reason:"token_scope"|"role"}
+        const top = parsed as unknown as { code?: unknown; required_scopes?: unknown; reason?: unknown; item_index?: unknown };
+        if (response.status === 403 && top.code === "missing_scope") {
+          const rs = parseRequiredScopes({ required_scopes: top.required_scopes });
+          errorExtra = { ...(rs.length ? { required_scopes: rs } : {}), ...(top.reason === "token_scope" || top.reason === "role" ? { reason: top.reason } : {}) };
+        }
+        if (typeof top.item_index === "number") errorExtra = { ...errorExtra, item_index: top.item_index };
         if (typeof parsed.detail === "string") {
           detail = parsed.detail || errorBody;
         } else if (parsed.detail && typeof parsed.detail === "object") {
           detail = parsed.detail.message || errorBody;
           // Most errors use {detail:{code,message}}; contact_already_exists uses {detail:{detail:"<code>",message}}.
-          const d = parsed.detail as { code?: string; detail?: unknown };
-          apiErrorCode = d.code ?? (typeof d.detail === "string" ? d.detail : undefined);
+          const d = parsed.detail as {
+            code?: string; detail?: unknown; error?: unknown; error_code?: unknown;
+            duplicates?: unknown; error_details?: unknown;
+          };
+          apiErrorCode =
+            d.code ??
+            (typeof d.detail === "string" ? d.detail : undefined) ??
+            // {detail:{error:"WHATSAPP_WINDOW_EXPIRED", message}} (messages.py window gate)
+            (typeof d.error === "string" ? d.error : undefined) ??
+            // {detail:{message, error_code: <Meta int>}} (WhatsApp template send)
+            (typeof d.error_code === "number" ? `whatsapp_${d.error_code}` : undefined);
+          // 402 billing gate: {detail:{message, reason}}
+          if (apiErrorCode === undefined && response.status === 402) apiErrorCode = "billing_required";
+          if (Array.isArray(d.duplicates)) errorExtra = { duplicates: d.duplicates };
+          // Validation lists (flow/agent/skill 422 {errors:[{path|field, code, message}]}) and the
+          // draft_conflict current revision: keep them so the caller can fix and retry.
+          const dd = parsed.detail as unknown as { errors?: unknown; revision?: unknown };
+          if (Array.isArray(dd.errors)) errorExtra = { ...errorExtra, errors: dd.errors };
+          if (typeof dd.revision === "number") errorExtra = { ...errorExtra, revision: dd.revision };
+          const di = parsed.detail as unknown as { item_index?: unknown; existing_entry_id?: unknown };
+          if (typeof di.item_index === "number") errorExtra = { ...errorExtra, item_index: di.item_index };
+          if (typeof di.existing_entry_id === "string") errorExtra = { ...errorExtra, existing_entry_id: di.existing_entry_id };
+          if (response.status === 403) {
+            const rs = parseRequiredScopes(parsed.detail);
+            if (rs.length) errorExtra = { ...errorExtra, required_scopes: rs };
+          }
+          if (typeof d.error_details === "string" && d.error_details && !detail.includes(d.error_details)) {
+            detail = `${detail} (${d.error_details})`;
+          }
         } else {
           detail = errorBody;
         }
@@ -117,7 +179,14 @@ export class SendSevenApiClient {
         detail = errorBody;
       }
 
-      throw new ApiClientError(response.status, detail, path, apiErrorCode);
+      // Plain-string 402/403 bodies (e.g. "Access blocked for deactivated tenant").
+      if (response.status === 402 && !apiErrorCode) apiErrorCode = "billing_required";
+      if (response.status === 403 && /deactivated/i.test(detail)) apiErrorCode = "workspace_deactivated";
+      if (response.status === 403 && !errorExtra?.required_scopes) {
+        const rs = parseRequiredScopes(detail);
+        if (rs.length) errorExtra = { ...errorExtra, required_scopes: rs };
+      }
+      throw new ApiClientError(response.status, detail, path, apiErrorCode, errorExtra, this.grantedScopes);
     }
 
     if (response.status === 204) {
@@ -902,6 +971,18 @@ const KNOWN_ERROR_SUGGESTIONS: Record<string, string> = {
     "Send pacing (send_rate_limit / send_batch_size) isn't enabled on this SendSeven account yet. Retry without these fields, or ask the account owner to enable it.",
 };
 
+/**
+ * Expected BUSINESS errors on 400s (not bugs): the call was valid but the
+ * channel rules forbid it. Suggestions point the model at the right next step.
+ */
+const WA_TEMPLATE_HINT =
+  "This is a WhatsApp rule, not a bug: free-form messages are only allowed within 24h of the customer's last message. Use send_whatsapp_template (see list_whatsapp_templates) to re-engage this contact.";
+const KNOWN_400_SUGGESTIONS: Record<string, string> = {
+  WHATSAPP_WINDOW_EXPIRED: WA_TEMPLATE_HINT,
+  WHATSAPP_NO_CUSTOMER_MESSAGE:
+    "This is a WhatsApp rule, not a bug: the contact has not written to you yet, so a free-form message is not allowed. Start the conversation with send_whatsapp_template.",
+};
+
 export class ApiClientError extends Error {
   public readonly statusCode: number;
   public readonly path: string;
@@ -910,8 +991,38 @@ export class ApiClientError extends Error {
   /** Structured error code from the API's `{"detail": {"code": ...}}` shape, when present. */
   public readonly apiErrorCode?: string;
 
-  constructor(statusCode: number, detail: string, path: string, apiErrorCode?: string) {
+  /** Extra structured fields from the error body (currently only `duplicates` of a 409 duplicate_contact). */
+  public readonly extra?: Record<string, unknown>;
+
+  /** Scopes the denied route needs (403 only; parsed from the response). */
+  public readonly requiredScopes: string[];
+  /** For 403s: true when this connection itself lacks the permission (reconnect fixes it), false when it was granted but the user's ROLE denies it, undefined when unknown. */
+  public readonly connectionLacksScope?: boolean;
+  /** Capability labels (consent groups) that contain the missing scopes. */
+  public readonly missingCapabilities: string[] = [];
+
+  constructor(
+    statusCode: number,
+    detail: string,
+    path: string,
+    apiErrorCode?: string,
+    extra?: Record<string, unknown>,
+    grantedScopes?: string[]
+  ) {
     super(detail);
+    this.extra = extra;
+    this.requiredScopes = Array.isArray(extra?.required_scopes) ? (extra!.required_scopes as string[]) : [];
+    const reason = extra?.reason;
+    if (statusCode === 403 && this.requiredScopes.length > 0 && (reason === "token_scope" || reason === "role")) {
+      // The API says which one it is: no inference needed.
+      this.connectionLacksScope = reason === "token_scope";
+      if (this.connectionLacksScope) this.missingCapabilities = capabilitiesForScopes(this.requiredScopes);
+    } else if (statusCode === 403 && this.requiredScopes.length > 0 && grantedScopes) {
+      // Backend requirements are any-of: if the connection holds none of them, the
+      // connection lacks the permission; if it holds one, the user's role denied it.
+      this.connectionLacksScope = !this.requiredScopes.some((s) => scopeGranted(grantedScopes, s));
+      if (this.connectionLacksScope) this.missingCapabilities = capabilitiesForScopes(this.requiredScopes);
+    }
     this.name = "ApiClientError";
     this.statusCode = statusCode;
     this.path = path;
@@ -921,11 +1032,23 @@ export class ApiClientError extends Error {
     switch (statusCode) {
       case 401:
         this.recoverable = false;
-        this.suggestion = "Your session has expired. Please reconnect your SendSeven account.";
+        this.suggestion = "Your SendSeven authorization is no longer valid (expired, revoked or replaced by a newer connection). Reconnect SendSeven in your AI client (remove and re-add the connector) and try again.";
+        break;
+      case 402:
+        this.recoverable = false;
+        this.suggestion = "The SendSeven workspace is restricted because of a billing or payment issue. A workspace owner must resolve it in SendSeven under Settings > Billing; retrying will not help.";
         break;
       case 403:
         this.recoverable = false;
-        this.suggestion = "You don't have permission for this action. Check your role in SendSeven settings.";
+        this.suggestion = this.connectionLacksScope
+          ? `Reconnect SendSeven in your AI client (remove and re-add the connector) and approve ${this.capabilityText()} to use this.`
+          : this.connectionLacksScope === false
+            ? "Your SendSeven user role does not allow this action. Ask a workspace admin to grant it to you in SendSeven (Settings > Team / Roles); reconnecting will not help."
+            : apiErrorCode === "workspace_deactivated"
+          ? "This SendSeven workspace is deactivated. Reactivate it in SendSeven (Settings > Billing) or contact support; retrying will not help."
+          : apiErrorCode === "feature_disabled"
+            ? "This feature is not included in the workspace's current SendSeven plan. A workspace owner can upgrade the plan in SendSeven under Settings > Billing."
+            : "You don't have permission for this action. Check your role in SendSeven settings.";
         break;
       case 404:
         this.recoverable = true;
@@ -942,6 +1065,12 @@ export class ApiClientError extends Error {
           ? "This contact already exists but may not be visible to you, so no details are returned. Do not retry the create; ask a workspace admin if you need access to it."
           : "The request conflicts with the current state of the resource. Check it and try again.";
         break;
+      case 400: {
+        this.recoverable = true;
+        const known = apiErrorCode ? KNOWN_400_SUGGESTIONS[apiErrorCode.toUpperCase()] : undefined;
+        this.suggestion = known ?? "The request was rejected. Check the parameters and the message above, then try again.";
+        break;
+      }
       case 429:
         this.recoverable = true;
         this.suggestion = "Rate limit exceeded. Please wait a moment and try again.";
@@ -954,22 +1083,51 @@ export class ApiClientError extends Error {
     }
   }
 
-  toMcpError(): { error: { code: string; message: string; recoverable: boolean; suggestion: string } } {
+  private capabilityText(): string {
+    return this.missingCapabilities.length ? `the "${this.missingCapabilities.join('" / "')}" capability` : `the ${this.requiredScopes.join(", ")} permission`;
+  }
+
+  toMcpError(): {
+    error: {
+      code: string;
+      message: string;
+      recoverable: boolean;
+      suggestion: string;
+      missing_scopes?: string[];
+      capabilities?: string[];
+      errors?: unknown[];
+      revision?: number;
+    };
+  } {
+    const code = this.errorCode();
+    const missingMsg = this.connectionLacksScope
+      ? `This SendSeven connection was not granted the permission ${this.requiredScopes.join(", ")}${this.missingCapabilities.length ? ` (capability: ${this.missingCapabilities.join(", ")})` : ""}.`
+      : undefined;
+    const errors = Array.isArray(this.extra?.errors) ? (this.extra!.errors as unknown[]) : undefined;
     return {
       error: {
-        code: this.errorCode(),
-        message: this.message,
+        code,
+        message: missingMsg ?? this.message,
         recoverable: this.recoverable,
         suggestion: this.suggestion,
+        ...(this.connectionLacksScope ? { missing_scopes: this.requiredScopes, capabilities: this.missingCapabilities } : {}),
+        ...(errors ? { errors } : {}),
+        ...(typeof this.extra?.revision === "number" ? { revision: this.extra.revision as number } : {}),
       },
     };
   }
 
   private errorCode(): string {
     if (this.statusCode === 422 && this.apiErrorCode) return this.apiErrorCode;
+    if (this.statusCode === 400 && this.apiErrorCode) return this.apiErrorCode.toLowerCase();
     switch (this.statusCode) {
-      case 401: return "unauthorized";
-      case 403: return "forbidden";
+      case 401: return "reauthorization_required";
+      case 402: return "billing_required";
+      case 403:
+        if (this.connectionLacksScope) return "permission_missing";
+        if (this.apiErrorCode === "workspace_deactivated") return "workspace_deactivated";
+        if (this.apiErrorCode === "feature_disabled") return "plan_upgrade_required";
+        return "forbidden";
       case 404: return "not_found";
       case 422: return "validation_error";
       case 429: return "rate_limited";

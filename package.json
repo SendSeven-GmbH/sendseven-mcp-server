@@ -1,6 +1,6 @@
 {
   "name": "@sendseven/mcp-server",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "SendSeven MCP Server - AI-native messaging API integration for Claude, GPT, Gemini and any MCP client",
   "author": "SendSeven GmbH",
   "license": "MIT",
@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "tail": "wrangler tail",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "generate:guides": "node scripts/generate-guides.mjs"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "^0.2.3",

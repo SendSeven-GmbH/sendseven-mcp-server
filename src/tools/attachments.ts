@@ -32,7 +32,7 @@ Examples:
       },
       { title: "Get Attachment Summary", readOnlyHint: true, destructiveHint: false },
       async ({ attachment_id }) => {
-        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+        const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           const summary = await client.getAttachmentSummary(attachment_id);
           return wrapResult({
@@ -67,7 +67,7 @@ Examples:
     },
     { title: "Upload Attachment", readOnlyHint: false, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.createAttachmentFromUrl(params.url, params.filename);
 

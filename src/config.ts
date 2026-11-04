@@ -5,6 +5,7 @@
  */
 
 import type { SendSevenMCP } from "./index.js";
+import { MCP_SERVER_VERSION } from "./version.js";
 
 export interface Env {
   // SendSeven API
@@ -31,6 +32,10 @@ export interface Env {
   // register-guard.ts). Optional: falls back to an OAUTH_KV counter when
   // this binding isn't configured (e.g. local dev).
   RATE_LIMITER?: RateLimit;
+
+  // Tool-usage analytics (Workers Analytics Engine, see analytics.ts).
+  // Optional: without the binding nothing is recorded.
+  ANALYTICS?: AnalyticsEngineDataset;
 }
 
 /**
@@ -141,6 +146,41 @@ export const SKILL_GROUPS = [
     scopes: ["teamchat:write", "team_chat:read"],
     default: false,
   },
+  {
+    id: "agent_builder",
+    label: "Agent Builder",
+    description: "Build, test and (with your confirmation) publish Conversational Agents and their skills, and attach them to channels",
+    icon: "bot",
+    // automation:publish is needed to publish/activate an agent and to attach it
+    // to a channel (bot activation rules). Publishing always needs an explicit
+    // confirm from the user inside the tool call.
+    scopes: ["automation:read", "automation:create", "automation:update", "automation:publish", "channels:read", "tags:read"],
+    default: true,
+  },
+  {
+    id: "knowledge_base_authoring",
+    label: "Knowledge Base Authoring",
+    description: "Add documents, FAQ entries and website crawls to your knowledge base and organise folders",
+    icon: "book-open",
+    scopes: ["knowledge_base:read", "knowledge_base:create", "knowledge_base:update"],
+    default: true,
+  },
+  {
+    id: "contact_data_model",
+    label: "Contact Data Model",
+    description: "Create custom contact fields, lists and tags that agents and flows use",
+    icon: "database",
+    scopes: ["custom_fields:read", "custom_fields:create", "custom_fields:update", "lists:read", "lists:create", "lists:update", "tags:read", "tags:create"],
+    default: true,
+  },
+  {
+    id: "flows",
+    label: "Flows",
+    description: "Design, validate, test and (with your confirmation) publish automation flows",
+    icon: "workflow",
+    scopes: ["flows:read", "flows:write", "flows:publish"],
+    default: true,
+  },
 ] as const;
 
 /** Base scopes always requested (auth infrastructure) */
@@ -169,7 +209,7 @@ export const RATE_LIMITS = {
 /** MCP server metadata */
 export const SERVER_INFO = {
   name: "sendseven-mcp",
-  version: "0.3.5",
+  version: MCP_SERVER_VERSION,
   description: "SendSeven MCP Server - AI-native messaging API for multi-channel communication",
   vendor: "SendSeven GmbH",
   homepage: "https://sendseven.com",

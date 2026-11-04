@@ -33,6 +33,11 @@ import { registerTeamTools } from "../src/tools/team.js";
 import { registerTeamChatTools } from "../src/tools/team-chat.js";
 import { registerWebhookTools } from "../src/tools/webhooks.js";
 import { registerAttachmentTools } from "../src/tools/attachments.js";
+import { registerKnowledgeAuthoringTools } from "../src/tools/kb-authoring.js";
+import { registerContactDataTools } from "../src/tools/contact-data.js";
+import { registerAgentBuilderTools } from "../src/tools/agent-builder.js";
+import { registerFlowTools } from "../src/tools/flow-builder.js";
+import { registerPermissionTools } from "../src/tools/permissions.js";
 import { SKILL_GROUPS } from "../src/config.js";
 import type { ToolContext } from "../src/types.js";
 
@@ -47,7 +52,18 @@ const ctx: ToolContext = {
 };
 
 /** Only genuinely destructive operations should ever set destructiveHint: true. */
-const EXPECTED_DESTRUCTIVE_TOOLS = ["delete_webhook"];
+const EXPECTED_DESTRUCTIVE_TOOLS = ["delete_webhook", "publish_agent", "publish_flow"];
+
+/** Agent Builder tools (v0.4.0): every one declares a nullable outputSchema. */
+export const AGENT_BUILDER_TOOLS = [
+  "list_knowledge_base_documents", "create_knowledge_base_folder", "upsert_knowledge_base_document", "crawl_website", "upsert_faq_entries",
+  "manage_custom_fields", "manage_lists",
+  "list_agents", "get_agent", "create_agent", "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
+  "test_agent", "get_agent_readiness", "publish_agent", "attach_agent_to_channel",
+  "upsert_skill", "manage_skill_versions",
+  "validate_flow", "save_flow_draft", "publish_flow", "test_flow",
+  "check_permissions",
+];
 
 /** Tools currently migrated to registerTool() with a declared outputSchema. */
 const EXPECTED_OUTPUT_SCHEMA_TOOLS = [
@@ -55,9 +71,18 @@ const EXPECTED_OUTPUT_SCHEMA_TOOLS = [
   "get_conversation",
   "search_contacts",
   "query_knowledge_base",
+  ...[
+    "list_knowledge_base_documents", "create_knowledge_base_folder", "upsert_knowledge_base_document", "crawl_website", "upsert_faq_entries",
+    "manage_custom_fields", "manage_lists",
+    "list_agents", "get_agent", "create_agent", "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
+    "test_agent", "get_agent_readiness", "publish_agent", "attach_agent_to_channel",
+    "upsert_skill", "manage_skill_versions",
+    "validate_flow", "save_flow_draft", "publish_flow", "test_flow",
+    "check_permissions",
+  ],
 ].sort();
 
-const EXPECTED_TOOL_COUNT = 45;
+const EXPECTED_TOOL_COUNT = 69;
 
 async function listToolsOverRealWire() {
   const server = new McpServer({ name: "test-probe", version: "0.0.0" });
@@ -74,6 +99,11 @@ async function listToolsOverRealWire() {
   registerTeamChatTools(server, ctx);
   registerWebhookTools(server, ctx);
   registerAttachmentTools(server, ctx);
+  registerKnowledgeAuthoringTools(server, ctx);
+  registerContactDataTools(server, ctx);
+  registerAgentBuilderTools(server, ctx);
+  registerFlowTools(server, ctx);
+  registerPermissionTools(server, ctx);
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "test-client", version: "0.0.0" });
@@ -126,7 +156,7 @@ describe("tools/list wire annotations (full tool surface)", () => {
     const tools = await listToolsOverRealWire();
     // Read/query/list/search/get tools should be readOnlyHint: true. Anything
     // that creates, updates, sends, assigns, closes, or deletes should not be.
-    const readNamePattern = /^(list_|get_|search_|query_)/;
+    const readNamePattern = /^(list_|get_|search_|query_|check_|validate_)/;
 
     for (const tool of tools) {
       const isDestructive = tool.annotations?.destructiveHint === true;

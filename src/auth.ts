@@ -6,6 +6,7 @@
  */
 
 import type { TokenInfo } from "./types.js";
+import { USER_AGENT } from "./version.js";
 
 /**
  * Check if a token is an API token (static) rather than OAuth JWT.
@@ -24,7 +25,7 @@ export async function validateApiToken(
   const response = await fetch(`${apiUrl}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      "User-Agent": "SendSeven-MCP/0.1.0",
+      "User-Agent": USER_AGENT,
     },
   });
 

@@ -94,9 +94,9 @@ npm run dev  # Runs on localhost:8787
 
 Tools are registered based on the capabilities selected during the OAuth
 connection. The table below groups tools by function for readability; the
-OAuth consent screen groups the same 45 tools into 8 coarser capability
+OAuth consent screen groups the same 69 tools into 12 coarser capability
 groups (Conversations, Messaging, Email, Contacts, Campaigns, Knowledge Base,
-Webhooks, Team Chat Bots) — granting a group grants every tool
+Webhooks, Team Chat Bots, Agent Builder, Knowledge Base Authoring, Contact Data Model, Flows) — granting a group grants every tool
 listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
 
 | Category | Tools |
@@ -110,7 +110,16 @@ listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
 | **Channels** | `list_channels`, `list_email_mailboxes`, `list_verified_email_domains`, `list_whatsapp_templates`, `get_whatsapp_template` |
 | **Team** | `list_team_members`, `set_out_of_office`, `end_out_of_office` |
 | **Team Chat Bots** | `list_team_chat_channels`, `send_team_chat_channel_message`, `send_team_chat_direct_message` |
+| **Agent Builder** | `list_agents`, `get_agent`, `create_agent`, `update_agent_draft`, `set_agent_skills`, `set_agent_knowledge_sources`, `test_agent`, `get_agent_readiness`, `publish_agent`, `attach_agent_to_channel`, `upsert_skill`, `manage_skill_versions` |
+| **Knowledge Base Authoring** | `list_knowledge_base_documents`, `create_knowledge_base_folder`, `upsert_knowledge_base_document`, `crawl_website`, `upsert_faq_entries` |
+| **Contact Data Model** | `manage_custom_fields`, `manage_lists` (plus the tag tools) |
+| **Flows** | `validate_flow`, `save_flow_draft`, `publish_flow`, `test_flow` |
+| **Permissions** | `check_permissions` (always available) |
 | **Webhooks (Developer)** | `list_webhooks`, `create_webhook`, `delete_webhook` |
+
+## Build an AI agent from your assistant
+
+The Agent Builder lets your own AI assistant create, test and publish a SendSeven Conversational Agent. Ask it to use the `build_conversational_agent` prompt: it interviews you (website, goals, knowledge, persona, skills, hand-off), writes the knowledge base documents, FAQ and skills, tests the draft and shows the AI credits used. Agents are always created as unpublished, inactive drafts; publishing and switching them on needs your explicit yes (`confirm=true`). Reference guides are exposed as MCP resources (`sendseven://guides/...`). If a permission was not granted when you connected, the assistant tells you which capability is missing and asks you to reconnect and approve it (`check_permissions`).
 
 ## Authentication
 
@@ -193,7 +202,7 @@ npm run deploy
 
 - OAuth 2.0 with PKCE (no client secret in browser)
 - All tokens encrypted at rest
-- Scope-based access control (27 granular OAuth scopes, grouped into 8 capability groups for consent)
+- Scope-based access control (41 granular OAuth scopes, grouped into 12 capability groups for consent)
 - Tenant isolation (no cross-tenant data access)
 - Rate limiting per plan
 - Token revocation via SendSeven settings

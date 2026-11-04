@@ -23,6 +23,7 @@ import { z } from "zod";
 import { SendSevenApiClient, ApiClientError } from "../api-client.js";
 import type { ToolContext, BotMessageCreate } from "../types.js";
 import { hasAnyScope, wrapResult, wrapError } from "./helpers.js";
+import { USER_AGENT } from "../version.js";
 
 const attachmentInputSchema = z.union([
   z.object({ id: z.string().describe("A previously-uploaded attachment ID") }),
@@ -99,7 +100,7 @@ async function getTeamChatJson<T>(
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        "User-Agent": "SendSeven-MCP/0.2.0",
+        "User-Agent": USER_AGENT,
       },
     });
 
@@ -234,7 +235,7 @@ Examples:
     },
     { title: "Send Team Chat Channel Message", readOnlyHint: false, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.sendBotChannelMessage(
           params.channel_ref,
@@ -282,7 +283,7 @@ Example: "DM user U123: Your report is ready" -> user_id="U123", text="Your repo
     },
     { title: "Send Team Chat Direct Message", readOnlyHint: false, destructiveHint: false },
     async (params) => {
-      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher);
+      const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
         const result = await client.sendBotDirectMessage(
           params.user_id,

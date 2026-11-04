@@ -22,7 +22,7 @@
 		"SENDSEVEN_AUTH_URL": "https://api.sendseven.com/api/v1/oauth-apps",
 		"SENDSEVEN_CONSENT_URL": "https://app.sendseven.com/oauth/consent",
 		"MCP_SERVER_NAME": "SendSeven MCP Server",
-		"MCP_SERVER_VERSION": "0.3.4"
+		"MCP_SERVER_VERSION": "0.4.0"
 	},
 	"durable_objects": {
 		"bindings": [
@@ -75,6 +75,7 @@
 			"custom_domain": true
 		}
 	],
+	"analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "sendseven_mcp_tool_calls" }],
 	"observability": {
 		"enabled": true
 	},
