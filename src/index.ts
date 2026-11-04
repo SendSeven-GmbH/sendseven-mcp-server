@@ -209,6 +209,17 @@ export default {
       return response;
     }
 
+    // OpenAI domain verification: serve the dashboard-issued token as plain text.
+    if (
+      (request.method === "GET" || request.method === "HEAD") &&
+      url.pathname === "/.well-known/openai-apps-challenge" &&
+      env.OPENAI_APPS_CHALLENGE
+    ) {
+      return new Response(request.method === "HEAD" ? null : env.OPENAI_APPS_CHALLENGE.trim(), {
+        headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+      });
+    }
+
     return oauthProvider.fetch(request, env, ctx);
   },
 } satisfies ExportedHandler<Env>;

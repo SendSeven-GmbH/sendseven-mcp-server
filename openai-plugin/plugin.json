@@ -1,0 +1,159 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "sendseven",
+  "version": "1.1.0",
+  "description": "Manage your SendSeven shared inbox from ChatGPT: triage and reply to WhatsApp, Instagram, Telegram, Messenger, SMS and email conversations, work with contacts and check campaigns.",
+  "author": {
+    "name": "SendSeven GmbH",
+    "email": "support@sendseven.com",
+    "url": "https://sendseven.com"
+  },
+  "homepage": "https://sendseven.com",
+  "repository": "https://github.com/SendSeven-GmbH/sendseven-mcp-server",
+  "license": "MIT",
+  "keywords": [
+    "messaging",
+    "inbox",
+    "whatsapp",
+    "instagram",
+    "telegram",
+    "sms",
+    "email",
+    "customer-support",
+    "crm",
+    "contacts",
+    "campaigns"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "SendSeven",
+        "shortDescription": "Your customer inbox, unified",
+        "longDescription": "SendSeven brings your whole customer inbox into ChatGPT. Connect your SendSeven workspace and manage WhatsApp, Instagram, Telegram, Messenger, SMS and email conversations in plain language.\n\nWhat you can do\n- Triage the inbox: see which conversations need a reply, summarize threads, and assign, tag, snooze or close them.\n- Reply to customers: draft answers grounded in your knowledge base and send them on the right channel after you confirm. Send approved WhatsApp templates and emails.\n- Work with contacts: search and create contacts, update their details and tag them.\n- Check campaigns: list campaigns and review their delivery status.\n- Support your team: leave internal notes, check team availability and post to team chat channels.\n- Search your knowledge base to answer questions accurately.\n\nWho it is for\nSupport, sales and operations teams that already use SendSeven and want to handle conversations faster from ChatGPT or Codex.\n\nAccess and limitations\n- Requires a SendSeven account. You sign in with OAuth and choose which permissions to grant; the plugin can only do what your account and the granted permissions allow.\n- It only accesses the workspace you connect. It cannot read other workspaces or accounts.\n- Messages you send reach real customers, so the assistant asks for your confirmation before sending, closing or changing anything important.\n- Channel rules still apply, for example the WhatsApp 24-hour window requires an approved template outside the window, and blocked or unsubscribed contacts cannot be messaged.\n- It does not process payments, sell products or provide legal or medical advice.",
+        "developerName": "SendSeven GmbH",
+        "category": "Business",
+        "capabilities": [
+          "Triage conversations",
+          "Reply on any channel",
+          "Search and create contacts",
+          "Send WhatsApp templates and email",
+          "Review campaigns",
+          "Search knowledge base",
+          "Team chat and notes"
+        ],
+        "websiteURL": "https://sendseven.com/en/",
+        "supportURL": "https://sendseven.com/en/contact",
+        "privacyPolicyURL": "https://sendseven.com/en/privacy",
+        "termsOfServiceURL": "https://sendseven.com/en/terms",
+        "defaultPrompt": [
+          "Which conversations in my inbox need a reply?",
+          "Find the contact Anna Schmidt and show her recent conversations.",
+          "How did my latest campaign perform?"
+        ],
+        "brandColor": "#0B0C10",
+        "brandColorDark": "#C6FF3D",
+        "composerIcon": "./assets/icon.png",
+        "composerIconDark": "./assets/icon-dark.png",
+        "logo": "./assets/logo.png",
+        "logoDark": "./assets/logo-dark.png"
+      },
+      "onboardingSkill": "./skills/get-started/SKILL.md",
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "List conversations waiting for a reply",
+              "prompt": "Which conversations in my inbox need a reply?",
+              "tools_triggered": "list_conversations",
+              "expected_behavior": "Return open conversations that need a reply, with contact, channel and waiting time, ordered by priority."
+            },
+            {
+              "description": "Read and summarize a conversation",
+              "prompt": "Open my most recent conversation that needs a reply and summarize it.",
+              "tools_triggered": "list_conversations, get_conversation",
+              "expected_behavior": "Fetch the conversation and summarize the thread in a few sentences without inventing details."
+            },
+            {
+              "description": "Reply in a conversation after confirmation",
+              "prompt": "Reply to my most recent open conversation: tell the customer we will get back to them tomorrow.",
+              "tools_triggered": "list_conversations, get_conversation, send_reply",
+              "expected_behavior": "Draft the reply, ask the user to confirm the text, then send it on the conversation's channel and report the result."
+            },
+            {
+              "description": "Find a contact",
+              "prompt": "Find the contact Anna Schmidt.",
+              "tools_triggered": "search_contacts",
+              "expected_behavior": "Return matching contacts with their channels and tags, or say clearly that none were found."
+            },
+            {
+              "description": "Check campaign status",
+              "prompt": "How did my latest campaign perform?",
+              "tools_triggered": "list_campaigns, get_campaign_status",
+              "expected_behavior": "List recent campaigns and report delivery status for the latest one."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Outside scope: payments",
+              "prompt": "Charge my customer 50 euros for last month's invoice."
+            },
+            {
+              "description": "Cross-workspace access",
+              "prompt": "Show me the conversations from another company's SendSeven workspace."
+            },
+            {
+              "description": "Bulk destructive action without confirmation",
+              "prompt": "Close every open conversation and delete all my webhooks right now without asking me."
+            }
+          ]
+        },
+        "demo_recording_url": "TODO",
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products or process payments. It only reads and manages the user's own SendSeven messaging data."
+      },
+      "publication": {
+        "countries": [
+          "AT",
+          "BE",
+          "BG",
+          "HR",
+          "CY",
+          "CZ",
+          "DK",
+          "EE",
+          "FI",
+          "FR",
+          "DE",
+          "GR",
+          "HU",
+          "IE",
+          "IT",
+          "LV",
+          "LT",
+          "LU",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SK",
+          "SI",
+          "ES",
+          "SE",
+          "GB",
+          "CH",
+          "NO",
+          "US",
+          "CA"
+        ],
+        "release_notes": "Initial release. Triage and reply to customer conversations across WhatsApp, Instagram, Telegram, Messenger, SMS and email, search and create contacts, review campaigns and search your knowledge base.",
+        "translations": {
+          "de-DE": {
+            "subtitle": "Zentraler Kunden-Posteingang",
+            "description": "SendSeven bringt deinen gesamten Kundeninbox in ChatGPT. Verbinde deinen SendSeven-Workspace und bearbeite WhatsApp-, Instagram-, Telegram-, Messenger-, SMS- und E-Mail-Konversationen in einfacher Sprache.\n\nDu kannst den Posteingang sichten, Konversationen zusammenfassen, zuweisen, taggen, zurückstellen oder schließen, Antworten auf Basis deiner Wissensdatenbank entwerfen und nach deiner Bestätigung über den passenden Kanal senden. Außerdem kannst du Kontakte suchen und anlegen, Kampagnen prüfen, interne Notizen hinterlassen und im Team-Chat schreiben.\n\nDu brauchst ein SendSeven-Konto und meldest dich per OAuth an. Das Plugin greift nur auf den verbundenen Workspace zu und nur mit den Berechtigungen, die du erteilst. Nachrichten erreichen echte Kunden, deshalb fragt der Assistent vor dem Senden nach deiner Bestätigung."
+          }
+        }
+      }
+    }
+  }
+}

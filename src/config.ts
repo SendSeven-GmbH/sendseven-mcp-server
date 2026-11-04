@@ -33,6 +33,10 @@ export interface Env {
   // this binding isn't configured (e.g. local dev).
   RATE_LIMITER?: RateLimit;
 
+  // OpenAI domain-verification token, served at /.well-known/openai-apps-challenge.
+  // Optional secret: issued in the OpenAI developer dashboard (wrangler secret put OPENAI_APPS_CHALLENGE).
+  OPENAI_APPS_CHALLENGE?: string;
+
   // Tool-usage analytics (Workers Analytics Engine, see analytics.ts).
   // Optional: without the binding nothing is recorded.
   ANALYTICS?: AnalyticsEngineDataset;
