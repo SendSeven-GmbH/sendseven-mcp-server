@@ -582,7 +582,7 @@ Every tool declares explicit boolean `readOnlyHint`, `destructiveHint` and `open
 
 - `readOnlyHint: true` only for tools that change nothing (list, get, search, query, check, validate).
 - `destructiveHint: true` when a tool can delete, overwrite or replace existing data, even if it can be undone: `delete_webhook`, `publish_agent`, `publish_flow`, `update_contact`, `upsert_knowledge_base_document`, `crawl_website`, `update_agent_draft`, `set_agent_skills`, `set_agent_knowledge_sources`, `save_flow_draft`, `upsert_skill`, `manage_skill_versions`, `manage_custom_fields`, `manage_lists`, `untag_contact`, `untag_conversation`. Clients such as ChatGPT ask for your approval before calling these. Purely additive actions stay `false`.
-- `openWorldHint: true` when a tool reaches outside your workspace: sending messages, emails, templates and campaigns to customers, crawling an external website, fetching a file from a URL, registering a webhook URL.
+- `openWorldHint: true` when a tool reaches outside your workspace: sending messages, emails, templates and campaigns to customers, crawling an external website, fetching a file from a URL, registering a webhook URL, posting team chat messages to colleagues.
 - `test_flow` and `test_agent` are dry runs: nothing is sent to customers and no live data changes, so they are not marked destructive.
 
 Safety rules built into the tools:
@@ -600,7 +600,7 @@ Guided workflows are available as MCP prompts: `build_conversational_agent`, `wr
 | `create_knowledge_base_folder` | Create a folder (idempotent by name + parent) | `knowledge_base:create` |
 | `upsert_knowledge_base_document` | Add markdown text, or replace the document with the same title | `knowledge_base:create` (+ `update` to replace) |
 | `crawl_website` | `action`: `preview`, `start` (default 50 pages), `status`, `cancel` | `knowledge_base:create` |
-| `upsert_faq_entries` | Up to 50 Q&A pairs; near-duplicates are skipped | `knowledge_base:create` |
+| `add_faq_entries` | Up to 50 Q&A pairs; near-duplicates are skipped | `knowledge_base:create` |
 
 ### Data model
 | Tool | Purpose | Scope |

@@ -244,9 +244,9 @@ action:
       })
   );
 
-  // ── upsert_faq_entries ───────────────────────────────────────────
+  // ── add_faq_entries ───────────────────────────────────────────
   server.registerTool(
-    "upsert_faq_entries",
+    "add_faq_entries",
     {
       description: `Add question/answer pairs to the Managed FAQ (the most direct source an agent answers from). Up to 50 per call. Entries whose question already exists (near-identical) are skipped, not duplicated, so re-running is safe. New entries are published immediately and become searchable after indexing.
 

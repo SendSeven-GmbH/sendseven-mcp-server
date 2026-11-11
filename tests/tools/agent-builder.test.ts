@@ -361,7 +361,7 @@ describe("knowledge base", () => {
     expect((await call(c, "crawl_website", { action: "status" })).isError).toBe(true);
   });
 
-  it("upsert_faq_entries uses the batch endpoint; a 409 item_index is reported as duplicate and the rest retried", async () => {
+  it("add_faq_entries uses the batch endpoint; a 409 item_index is reported as duplicate and the rest retried", async () => {
     const bodies: any[] = [];
     routes = [(cl) => {
       if (cl.method === "POST" && cl.path === "/knowledge-base/faq-items/batch") {
@@ -373,7 +373,7 @@ describe("knowledge base", () => {
       }
     }];
     const c = await connect(mkCtx());
-    const { data } = await call(c, "upsert_faq_entries", { entries: [{ question: "a", answer: "b" }, { question: "c", answer: "d" }, { question: "e", answer: "f" }] });
+    const { data } = await call(c, "add_faq_entries", { entries: [{ question: "a", answer: "b" }, { question: "c", answer: "d" }, { question: "e", answer: "f" }] });
     expect(bodies.length).toBe(2);
     expect(bodies[1].items.map((i: any) => i.question)).toEqual(["a", "e"]);
     expect(data.created).toBe(2);

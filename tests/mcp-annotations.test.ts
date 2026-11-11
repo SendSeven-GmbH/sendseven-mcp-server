@@ -68,11 +68,12 @@ const EXPECTED_DESTRUCTIVE_TOOLS = [
 const EXPECTED_OPEN_WORLD_TOOLS = [
   "crawl_website", "send_reply", "email_conversation_transcript", "send_message_to_contact",
   "send_whatsapp_template", "send_email", "create_and_send_campaign", "create_webhook", "upload_attachment",
+  "send_team_chat_channel_message", "send_team_chat_direct_message",
 ];
 
 /** Agent Builder tools (v0.4.0): every one declares a nullable outputSchema. */
 export const AGENT_BUILDER_TOOLS = [
-  "list_knowledge_base_documents", "create_knowledge_base_folder", "upsert_knowledge_base_document", "crawl_website", "upsert_faq_entries",
+  "list_knowledge_base_documents", "create_knowledge_base_folder", "upsert_knowledge_base_document", "crawl_website", "add_faq_entries",
   "manage_custom_fields", "manage_lists",
   "list_agents", "get_agent", "create_agent", "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
   "test_agent", "get_agent_readiness", "publish_agent", "attach_agent_to_channel",
@@ -88,7 +89,7 @@ const EXPECTED_OUTPUT_SCHEMA_TOOLS = [
   "search_contacts",
   "query_knowledge_base",
   ...[
-    "list_knowledge_base_documents", "create_knowledge_base_folder", "upsert_knowledge_base_document", "crawl_website", "upsert_faq_entries",
+    "list_knowledge_base_documents", "create_knowledge_base_folder", "upsert_knowledge_base_document", "crawl_website", "add_faq_entries",
     "manage_custom_fields", "manage_lists",
     "list_agents", "get_agent", "create_agent", "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
     "test_agent", "get_agent_readiness", "publish_agent", "attach_agent_to_channel",
