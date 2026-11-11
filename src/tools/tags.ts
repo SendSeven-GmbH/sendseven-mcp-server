@@ -29,7 +29,7 @@ Examples:
         page: z.number().optional().describe("Page number (default: 1)"),
         page_size: z.number().optional().describe("Results per page (default: 50)"),
       },
-      { title: "List Tags", readOnlyHint: true, destructiveHint: false },
+      { title: "List Tags", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -73,7 +73,7 @@ Examples:
         color: z.string().optional().describe("Hex color code (e.g., #EF4444)"),
         description: z.string().optional().describe("Tag description (max 255 characters)"),
       },
-      { title: "Create Tag", readOnlyHint: false, destructiveHint: false },
+      { title: "Create Tag", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -106,7 +106,7 @@ Examples:
         conversation_id: z.string().describe("The conversation ID"),
         tag_id: z.string().describe("The tag ID to add"),
       },
-      { title: "Tag Conversation", readOnlyHint: false, destructiveHint: false },
+      { title: "Tag Conversation", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ conversation_id, tag_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -129,7 +129,7 @@ Examples:
         conversation_id: z.string().describe("The conversation ID"),
         tag_id: z.string().describe("The tag ID to remove"),
       },
-      { title: "Untag Conversation", readOnlyHint: false, destructiveHint: false },
+      { title: "Untag Conversation", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       async ({ conversation_id, tag_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -154,7 +154,7 @@ Examples:
         contact_id: z.string().describe("The contact ID"),
         tag_id: z.string().describe("The tag ID to add"),
       },
-      { title: "Tag Contact", readOnlyHint: false, destructiveHint: false },
+      { title: "Tag Contact", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ contact_id, tag_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -177,7 +177,7 @@ Examples:
         contact_id: z.string().describe("The contact ID"),
         tag_id: z.string().describe("The tag ID to remove"),
       },
-      { title: "Untag Contact", readOnlyHint: false, destructiveHint: false },
+      { title: "Untag Contact", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       async ({ contact_id, tag_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {

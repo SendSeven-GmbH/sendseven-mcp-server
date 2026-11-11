@@ -576,6 +576,15 @@ endpoint to enumerate previously-created attachments; save the returned
 
 Build, test and (with your confirmation) publish Conversational Agents from your AI assistant. Your own assistant writes the persona, skills and flows; SendSeven stores, validates and tests them. Four capability groups (all on by default, each can be switched off at connect time): **Agent Builder** (`automation:*`), **Knowledge Base Authoring**, **Contact Data Model** and **Flows**. Conversational Agents need the Professional plan or higher (otherwise `plan_upgrade_required`).
 
+### Tool annotations and confirmation
+
+Every tool declares explicit boolean `readOnlyHint`, `destructiveHint` and `openWorldHint` (the OpenAI app review requires all three; clients must never rely on defaults).
+
+- `readOnlyHint: true` only for tools that change nothing (list, get, search, query, check, validate).
+- `destructiveHint: true` when a tool can delete, overwrite or replace existing data, even if it can be undone: `delete_webhook`, `publish_agent`, `publish_flow`, `update_contact`, `upsert_knowledge_base_document`, `crawl_website`, `update_agent_draft`, `set_agent_skills`, `set_agent_knowledge_sources`, `save_flow_draft`, `upsert_skill`, `manage_skill_versions`, `manage_custom_fields`, `manage_lists`, `untag_contact`, `untag_conversation`. Clients such as ChatGPT ask for your approval before calling these. Purely additive actions stay `false`.
+- `openWorldHint: true` when a tool reaches outside your workspace: sending messages, emails, templates and campaigns to customers, crawling an external website, fetching a file from a URL, registering a webhook URL.
+- `test_flow` and `test_agent` are dry runs: nothing is sent to customers and no live data changes, so they are not marked destructive.
+
 Safety rules built into the tools:
 - `create_agent` always creates an unpublished, inactive draft. Nothing answers customers until `publish_agent` is called with `confirm=true`, which the assistant must only do after you say so. `publish_flow` works the same way.
 - Edits (`update_agent_draft`, `set_agent_skills`, `set_agent_knowledge_sources`) go to the agent's draft, never the live agent.

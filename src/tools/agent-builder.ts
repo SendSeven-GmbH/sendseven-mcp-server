@@ -179,7 +179,7 @@ export function registerAgentBuilderTools(server: McpServer, ctx: ToolContext): 
         page_size: z.number().optional().describe("Default 50, max 100"),
       },
       outputSchema: { agents: z.array(agentRowSchema), total: nNum },
-      annotations: { title: "List Agents", readOnlyHint: true, destructiveHint: false },
+      annotations: { title: "List Agents", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     async (p) =>
       guard(async () => {
@@ -198,7 +198,7 @@ export function registerAgentBuilderTools(server: McpServer, ctx: ToolContext): 
       description: `Get one agent with its editable draft document (persona, instructions, skills, knowledge sources, tools, hand-off, channel rules), publish state, current draft revision and what would block publishing. Use this before editing so you change only what is needed.`,
       inputSchema: { agent_id: z.string() },
       outputSchema: { agent: agentRowSchema, ...draftSchema },
-      annotations: { title: "Get Agent", readOnlyHint: true, destructiveHint: false },
+      annotations: { title: "Get Agent", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     async (p) =>
       guard(async () => {
@@ -227,7 +227,7 @@ Write a focused persona and instructions, link skills (upsert_skill first) and k
           knowledge_sources: z.array(knowledgeSourceIn).optional().describe("Knowledge sources, e.g. [{source_type:'faq'},{source_type:'kb_folder',kb_folder_id:'...'}]"),
         },
         outputSchema: { agent: agentRowSchema, already_existed: z.boolean(), next_step: nStr },
-        annotations: { title: "Create Agent (Draft)", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+        annotations: { title: "Create Agent (Draft)", readOnlyHint: false, destructiveHint: false, openWorldHint: false, idempotentHint: true },
       },
       async (p) =>
         guard(async () => {
@@ -271,7 +271,7 @@ To change linked skills or knowledge use set_agent_skills / set_agent_knowledge_
           base_revision: z.number().optional().describe("Draft revision you last saw (from get_agent)"),
         },
         outputSchema: draftSchema,
-        annotations: { title: "Update Agent Draft", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+        annotations: { title: "Update Agent Draft", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
       },
       async (p) =>
         guard(async () => {
@@ -289,7 +289,7 @@ To change linked skills or knowledge use set_agent_skills / set_agent_knowledge_
         description: `Replace the list of skills linked to an agent's DRAFT (the list you send is the full list). Skills hold the instructions: one foundation skill with mode always_on (company facts, tone, rules) plus model_selected skills for specific tasks (returns, lead qualification). Takes effect on publish.`,
         inputSchema: { agent_id: z.string(), skills: z.array(skillLinkIn).describe("Full list of skill links"), base_revision: z.number().optional() },
         outputSchema: draftSchema,
-        annotations: { title: "Set Agent Skills (Draft)", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+        annotations: { title: "Set Agent Skills (Draft)", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
       },
       async (p) =>
         guard(async () => {
@@ -305,7 +305,7 @@ To change linked skills or knowledge use set_agent_skills / set_agent_knowledge_
         description: `Replace the knowledge sources of an agent's DRAFT (the list you send is the full list). Types: faq (the Managed FAQ), kb_folder (needs kb_folder_id), kb_all (the whole knowledge base), web_search (off unless the user wants it), live_source, lookup_table. Takes effect on publish. Check indexing with get_agent_readiness.`,
         inputSchema: { agent_id: z.string(), knowledge_sources: z.array(knowledgeSourceIn), base_revision: z.number().optional() },
         outputSchema: draftSchema,
-        annotations: { title: "Set Agent Knowledge Sources (Draft)", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+        annotations: { title: "Set Agent Knowledge Sources (Draft)", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
       },
       async (p) =>
         guard(async () => {
@@ -335,7 +335,7 @@ To continue a conversation pass the previous turns in history and send the retur
           skills_loaded: nArr, tool_calls: nArr, credits: nObj, credits_this_turn: nNum,
           state: nObj, turn_id: nStr, goal_progress: nObj, tested_config: nStr,
         },
-        annotations: { title: "Test Agent", readOnlyHint: false, destructiveHint: false },
+        annotations: { title: "Test Agent", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       },
       async (p) =>
         guard(async () => {
@@ -371,7 +371,7 @@ To continue a conversation pass the previous turns in history and send the retur
         ready: nBool, live: nBool, can_publish: nBool, blockers: nArr, next_steps: nArr,
         knowledge: nObj, skills: nObj, routing: nObj, capabilities: nObj, plan: nObj, publish_state: nStr,
       },
-      annotations: { title: "Get Agent Readiness", readOnlyHint: true, destructiveHint: false },
+      annotations: { title: "Get Agent Readiness", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     async (p) =>
       guard(async () => {
@@ -405,7 +405,7 @@ Optionally set activate=true to also switch the agent on (is_active). An agent o
         published: z.boolean(), activated: z.boolean(), confirmation_required: z.boolean(),
         publish_state: nStr, revision: nNum, blockers: nArr, next_steps: nArr, message: nStr,
       },
-      annotations: { title: "Publish Agent", readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+      annotations: { title: "Publish Agent", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: false },
     },
     async (p) =>
       guard(async () => {
@@ -462,7 +462,7 @@ Attaching to a channel lets the agent reply to real customers on it as soon as t
         rule_id: nStr, channel_ids: nArr, widget_ids: nArr, already_existed: z.boolean(),
         agent_is_active: nBool, publish_state: nStr, note: nStr,
       },
-      annotations: { title: "Attach Agent to Channel", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      annotations: { title: "Attach Agent to Channel", readOnlyHint: false, destructiveHint: false, openWorldHint: false, idempotentHint: true },
     },
     async (p) =>
       guard(async () => {
@@ -542,7 +542,7 @@ Fields:
         is_archived: z.boolean().optional(),
       },
       outputSchema: { skill: skillSchema, action: z.enum(["created", "updated", "unchanged"]), version_created: z.boolean() },
-      annotations: { title: "Create or Update Skill", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      annotations: { title: "Create or Update Skill", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
     },
     async (p) =>
       guard(async () => {
@@ -596,7 +596,7 @@ action: list (needs skill_id) | restore (needs skill_id and version_id from list
         versions: z.array(z.object({ id: nStr, version: nNum, title: nStr, is_current: nBool, body_chars: nNum, has_goal: nBool, created_at: nStr })),
         skill: skillSchema.nullable().optional(),
       },
-      annotations: { title: "Skill Versions", readOnlyHint: false, destructiveHint: false },
+      annotations: { title: "Skill Versions", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     },
     async (p) =>
       guard(async () => {

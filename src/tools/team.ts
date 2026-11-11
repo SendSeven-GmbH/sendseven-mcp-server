@@ -24,7 +24,7 @@ Examples:
         page: z.number().optional().describe("Page number (default: 1)"),
         page_size: z.number().optional().describe("Results per page (default: 50)"),
       },
-      { title: "List Team Members", readOnlyHint: true, destructiveHint: false },
+      { title: "List Team Members", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -79,7 +79,7 @@ Examples:
         substitute_tag_id: z.string().optional().describe("Tag id for the tag modes"),
         note: z.string().max(255).optional().describe("Internal reason, never shown to customers"),
       },
-      { title: "Set Out of Office", readOnlyHint: false, destructiveHint: false },
+      { title: "Set Out of Office", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -108,7 +108,7 @@ Examples:
       "end_out_of_office",
       `End the connected user's running out of office now ("I'm back"). Acts only on the user who connected this server.`,
       {},
-      { title: "End Out of Office", readOnlyHint: false, destructiveHint: false },
+      { title: "End Out of Office", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async () => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {

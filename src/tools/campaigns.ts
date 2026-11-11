@@ -27,7 +27,7 @@ Examples:
         page: z.number().optional().describe("Page number (default: 1)"),
         page_size: z.number().optional().describe("Results per page (default: 50)"),
       },
-      { title: "List Contact Lists", readOnlyHint: true, destructiveHint: false },
+      { title: "List Contact Lists", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -79,7 +79,7 @@ Examples:
         status: z.enum(["draft", "scheduled", "sending", "completed", "paused", "failed", "cancelled"]).optional().describe("Filter by campaign status"),
         limit: z.number().optional().describe("Max results (default: 20)"),
       },
-      { title: "List Campaigns", readOnlyHint: true, destructiveHint: false },
+      { title: "List Campaigns", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -120,7 +120,7 @@ Examples:
       {
         campaign_id: z.string().describe("The campaign ID (from list_campaigns or create_and_send_campaign)"),
       },
-      { title: "Get Campaign Status", readOnlyHint: true, destructiveHint: false },
+      { title: "Get Campaign Status", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async ({ campaign_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -198,7 +198,7 @@ Examples:
       send_batch_size: z.number().int().min(1).optional()
         .describe("Send in batches of this many recipients. After each batch the campaign pauses (status 'paused', throttle_reason 'batch_complete') so the results can be reviewed before the next batch — or all remaining recipients — is sent from the SendSeven dashboard or via POST /campaigns/{id}/send-next-batch; resuming a batch-paused campaign also sends just the next batch at this size. For a large SMS audience, a first test batch of about 50 recipients is a good idea."),
     },
-    { title: "Create and Send Campaign", readOnlyHint: false, destructiveHint: false },
+    { title: "Create and Send Campaign", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

@@ -57,7 +57,7 @@ Examples:
           total: nNum,
           summary: z.object({ ready: z.number(), not_ready: z.number(), failed: z.number() }),
         },
-        annotations: { title: "List Knowledge Base Documents", readOnlyHint: true, destructiveHint: false },
+        annotations: { title: "List Knowledge Base Documents", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       },
       async (p) =>
         guard(async () => {
@@ -95,7 +95,7 @@ Examples:
         parent_id: z.string().optional().describe("Parent folder id; omit for a top-level folder"),
       },
       outputSchema: { id: nStr, name: nStr, parent_id: nStr, already_existed: z.boolean() },
-      annotations: { title: "Create Knowledge Base Folder", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      annotations: { title: "Create Knowledge Base Folder", readOnlyHint: false, destructiveHint: false, openWorldHint: false, idempotentHint: true },
     },
     async (p) =>
       guard(async () => {
@@ -128,7 +128,7 @@ Write clear, self-contained markdown: one topic per document, headings, short pa
         id: nStr, title: nStr, status: nStr, folder_id: nStr, action: z.enum(["created", "replaced"]),
         hint: nStr,
       },
-      annotations: { title: "Add or Replace Knowledge Base Document", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      annotations: { title: "Add or Replace Knowledge Base Document", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
     },
     async (p) =>
       guard(async () => {
@@ -185,7 +185,7 @@ action:
         pages_crawled: nNum, pages_failed: nNum, documents_created: nNum, total_pages: nNum,
         title: nStr, error_message: nStr, details: nObj, next_step: nStr,
       },
-      annotations: { title: "Crawl Website into Knowledge Base", readOnlyHint: false, destructiveHint: false },
+      annotations: { title: "Crawl Website into Knowledge Base", readOnlyHint: false, destructiveHint: true, openWorldHint: true },
     },
     async (p) =>
       guard(async () => {
@@ -259,7 +259,7 @@ Write answers as the agent should say them: short, factual, in the customer's la
         created: z.number(), skipped_duplicates: z.number(), failed: z.number(),
         results: z.array(z.object({ question: z.string(), outcome: z.enum(["created", "duplicate", "failed"]), id: nStr, error: nStr })),
       },
-      annotations: { title: "Add FAQ Entries", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      annotations: { title: "Add FAQ Entries", readOnlyHint: false, destructiveHint: false, openWorldHint: false, idempotentHint: true },
     },
     async (p) =>
       guard(async () => {

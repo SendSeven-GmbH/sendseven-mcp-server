@@ -30,7 +30,7 @@ Examples:
       {
         attachment_id: z.string().describe("ID of the inbound image/PDF attachment (from a message's attachments)"),
       },
-      { title: "Get Attachment Summary", readOnlyHint: true, destructiveHint: false },
+      { title: "Get Attachment Summary", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async ({ attachment_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -65,7 +65,7 @@ Examples:
       url: z.string().describe("Public URL of the file to upload — SendSeven downloads it server-side"),
       filename: z.string().optional().describe("Optional filename (include the correct extension, e.g. invoice.pdf)"),
     },
-    { title: "Upload Attachment", readOnlyHint: false, destructiveHint: false },
+    { title: "Upload Attachment", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

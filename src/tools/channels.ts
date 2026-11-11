@@ -25,7 +25,7 @@ Examples:
 - "Is our WhatsApp integration working?"
 - "Show me the channel health status"`,
     {},
-    { title: "List Channels", readOnlyHint: true, destructiveHint: false },
+    { title: "List Channels", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async () => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -95,7 +95,7 @@ Examples:
 - "Show me our configured mailboxes"
 - "Which mailbox is the default?"`,
     {},
-    { title: "List Email Mailboxes", readOnlyHint: true, destructiveHint: false },
+    { title: "List Email Mailboxes", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async () => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -129,7 +129,7 @@ Examples:
 - "Is example.com verified for sending?"
 - "Why did my email send fail — is the domain verified?"`,
     {},
-    { title: "List Verified Email Domains", readOnlyHint: true, destructiveHint: false },
+    { title: "List Verified Email Domains", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async () => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -175,7 +175,7 @@ Examples:
       limit: z.number().optional().describe("Max results to return (default: 100)"),
       offset: z.number().optional().describe("Number of results to skip, for paging (default: 0)"),
     },
-    { title: "List WhatsApp Templates", readOnlyHint: true, destructiveHint: false },
+    { title: "List WhatsApp Templates", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -225,7 +225,7 @@ Examples:
     {
       template_id: z.string().describe("The template's id (from list_whatsapp_templates)"),
     },
-    { title: "Get WhatsApp Template", readOnlyHint: true, destructiveHint: false },
+    { title: "Get WhatsApp Template", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

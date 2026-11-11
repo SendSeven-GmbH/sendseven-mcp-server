@@ -55,7 +55,7 @@ For select/multiselect give options.`,
           ),
           already_existed: z.boolean().nullable().optional(),
         },
-        annotations: { title: "Manage Custom Fields", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+        annotations: { title: "Manage Custom Fields", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
       },
       async (p) =>
         guard(async () => {
@@ -125,7 +125,7 @@ action:
           succeeded: z.number().nullable().optional(),
           failed: z.array(z.object({ contact_id: z.string(), error: z.string() })).nullable().optional(),
         },
-        annotations: { title: "Manage Lists", readOnlyHint: false, destructiveHint: false },
+        annotations: { title: "Manage Lists", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       },
       async (p) =>
         guard(async () => {

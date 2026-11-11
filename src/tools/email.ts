@@ -82,7 +82,7 @@ Examples:
       mailbox_id: z.string().optional().describe("Email mailbox ID to send from. Use list_email_mailboxes to see available mailboxes. If not specified, uses the default mailbox."),
       create_if_not_exists: z.boolean().optional().describe("Create contact if not found (default: true)"),
     },
-    { title: "Send Email", readOnlyHint: false, destructiveHint: false },
+    { title: "Send Email", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

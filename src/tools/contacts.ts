@@ -76,7 +76,7 @@ Each contact carries owner_user_id and owner (name + availability_state) when it
           total_pages: z.number(),
           hint: z.string().optional(),
         },
-        annotations: { title: "Search Contacts", readOnlyHint: true, destructiveHint: false },
+        annotations: { title: "Search Contacts", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       },
       async (params) => {
         if (!params.query && !params.tag_id && !params.owner_user_id) {
@@ -169,7 +169,7 @@ Examples:
           .optional()
           .describe("Contact owner: team member user id (from list_team_members). Applied right after creation; needs contacts:update."),
       },
-      { title: "Create Contact", readOnlyHint: false, destructiveHint: false },
+      { title: "Create Contact", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async (params) => {
         if (!params.phone && !params.email && !params.name) {
           return wrapError({
@@ -246,7 +246,7 @@ Examples:
           .optional()
           .describe("Contact owner: team member user id (from list_team_members, must be an active member). null removes the owner. Setting an owner also hands the contact's open unassigned conversations to them."),
       },
-      { title: "Update Contact", readOnlyHint: false, destructiveHint: false },
+      { title: "Update Contact", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       async (params) => {
         const { contact_id, ...fields } = params;
         if (Object.values(fields).every((v) => v === undefined)) {

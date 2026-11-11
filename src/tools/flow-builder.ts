@@ -32,7 +32,7 @@ export function registerFlowTools(server: McpServer, ctx: ToolContext): void {
         flow_id: z.string().optional().describe("Validate as an edit of this existing flow"),
       },
       outputSchema: { valid: z.boolean(), errors: nArr, can_activate: nBool, publish_issues: nArr, is_live: nBool },
-      annotations: { title: "Validate Flow", readOnlyHint: true, destructiveHint: false },
+      annotations: { title: "Validate Flow", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     async (p) =>
       guard(async () => {
@@ -68,7 +68,7 @@ export function registerFlowTools(server: McpServer, ctx: ToolContext): void {
         revision_summary: z.string().optional().describe("Short note for the version history"),
       },
       outputSchema: { flow: flowSchema, action: z.enum(["created", "updated"]), next_step: nStr },
-      annotations: { title: "Save Flow Draft", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      annotations: { title: "Save Flow Draft", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
     },
     async (p) =>
       guard(async () => {
@@ -106,7 +106,7 @@ export function registerFlowTools(server: McpServer, ctx: ToolContext): void {
       description: `PUBLISH a flow so it starts running for real customers on its trigger. Only call after the user explicitly approved publishing THIS flow; set confirm=true only then. Without confirm=true nothing changes and you get the flow's publish readiness to show the user. Needs the flows:publish permission.`,
       inputSchema: { flow_id: z.string(), confirm: z.boolean().describe("Must be true, only after explicit user approval") },
       outputSchema: { published: z.boolean(), confirmation_required: z.boolean(), flow: flowSchema.nullable().optional(), can_activate: nBool, issues: nArr, message: nStr },
-      annotations: { title: "Publish Flow", readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+      annotations: { title: "Publish Flow", readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: false },
     },
     async (p) =>
       guard(async () => {
@@ -134,7 +134,7 @@ export function registerFlowTools(server: McpServer, ctx: ToolContext): void {
   server.registerTool(
     "test_flow",
     {
-      description: `Run a flow in the test sandbox. Nothing reaches real customers (sends to other channels are simulated; a Conversational Agent step runs for real and may use AI credits).
+      description: `Run a flow in the test sandbox (a dry run). Nothing is sent to real customers (sends to other channels are simulated), the flow itself and all real contacts, conversations and customer data are never changed or deleted; the only thing stored is the temporary test run, which action=stop discards. A Conversational Agent step runs for real and may use AI credits.
 
 action:
 - start: needs flow_id and trigger_type (e.g. incoming_message) [+ trigger_text]. Returns run_id.
@@ -151,7 +151,7 @@ action:
         text: z.string().optional().describe("reply: customer text"),
       },
       outputSchema: { action: z.string(), run_id: nStr, conversation_id: nStr, steps: nArr, result: nObj, next_step: nStr },
-      annotations: { title: "Test Flow", readOnlyHint: false, destructiveHint: false },
+      annotations: { title: "Test Flow", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     },
     async (p) =>
       guard(async () => {

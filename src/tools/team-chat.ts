@@ -180,7 +180,7 @@ Examples:
           .optional()
           .describe('Only applies when include_browsable is true. Case-insensitive search filter over browsable channel name/display name.'),
       },
-      { title: "List Team Chat Channels", readOnlyHint: true, destructiveHint: false },
+      { title: "List Team Chat Channels", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async (params) => {
         try {
           let channels: RawTeamChatChannel[];
@@ -233,7 +233,7 @@ Examples:
       attachment_ids: z.array(z.string()).optional().describe("Previously-uploaded attachment IDs"),
       attachments: z.array(attachmentInputSchema).optional().describe("Attachments as {id} (existing) or {url, filename?} (public URL, downloaded server-side)"),
     },
-    { title: "Send Team Chat Channel Message", readOnlyHint: false, destructiveHint: false },
+    { title: "Send Team Chat Channel Message", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -281,7 +281,7 @@ Example: "DM user U123: Your report is ready" -> user_id="U123", text="Your repo
       attachment_ids: z.array(z.string()).optional().describe("Previously-uploaded attachment IDs"),
       attachments: z.array(attachmentInputSchema).optional().describe("Attachments as {id} (existing) or {url, filename?} (public URL, downloaded server-side)"),
     },
-    { title: "Send Team Chat Direct Message", readOnlyHint: false, destructiveHint: false },
+    { title: "Send Team Chat Direct Message", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

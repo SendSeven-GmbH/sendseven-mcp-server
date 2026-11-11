@@ -38,7 +38,7 @@ Examples:
           })
         ),
       },
-      annotations: { title: "Query Knowledge Base", readOnlyHint: true, destructiveHint: false },
+      annotations: { title: "Query Knowledge Base", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
@@ -78,7 +78,7 @@ Examples:
 - "What folders are in our knowledge base?"
 - "How many documents are in the Product Documentation folder?"`,
     {},
-    { title: "List Knowledge Base Folders", readOnlyHint: true, destructiveHint: false },
+    { title: "List Knowledge Base Folders", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async () => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

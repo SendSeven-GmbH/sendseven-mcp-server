@@ -27,7 +27,7 @@ Examples:
       page: z.number().optional().describe("Page number (default: 1)"),
       page_size: z.number().optional().describe("Results per page (default: 20)"),
     },
-    { title: "List Email Campaigns", readOnlyHint: true, destructiveHint: false },
+    { title: "List Email Campaigns", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -82,7 +82,7 @@ Examples:
     {
       campaign_id: z.string().describe("The email campaign's 'id' from list_email_campaigns (its 'campaign_id' field also works but is not preferred)"),
     },
-    { title: "Get Email Campaign Analytics", readOnlyHint: true, destructiveHint: false },
+    { title: "Get Email Campaign Analytics", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {

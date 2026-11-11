@@ -89,7 +89,7 @@ Examples:
           total_pages: z.number(),
           hint: z.string().optional(),
         },
-        annotations: { title: "List Conversations", readOnlyHint: true, destructiveHint: false },
+        annotations: { title: "List Conversations", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       },
       async (params) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
@@ -214,7 +214,7 @@ Examples:
           /** The address the most recent outbound email actually went to — the definitive way to verify a send_email destination. */
           resolved_recipient: z.string().optional(),
         },
-        annotations: { title: "Get Conversation", readOnlyHint: true, destructiveHint: false },
+        annotations: { title: "Get Conversation", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       },
       async ({ conversation_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
@@ -305,7 +305,7 @@ Examples:
         text: z.string().describe("The reply message text"),
         attachments: z.array(attachmentInputSchema).optional().describe('Files to attach. Each entry is EITHER {"id": "<attachment-id>"} (already uploaded) OR {"url": "https://...", "filename?": "..."} (public URL, downloaded server-side).'),
       },
-      { title: "Send Reply", readOnlyHint: false, destructiveHint: false },
+      { title: "Send Reply", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
       async ({ conversation_id, text, attachments }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -451,7 +451,7 @@ Examples:
         notes: z.string().optional().describe("Optional closing notes (e.g., 'Resolved: refund issued')"),
         summarize: z.boolean().optional().describe("Generate AI summary for knowledge base (default: true)"),
       },
-      { title: "Close Conversation", readOnlyHint: false, destructiveHint: false },
+      { title: "Close Conversation", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ conversation_id, notes, summarize }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -479,7 +479,7 @@ Examples:
         conversation_id: z.string().describe("The conversation ID"),
         agent_name_or_id: z.string().describe("The agent's user ID to assign the conversation to. Must be a real user ID, not a name — use list_team_members to look it up."),
       },
-      { title: "Assign Conversation", readOnlyHint: false, destructiveHint: false },
+      { title: "Assign Conversation", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ conversation_id, agent_name_or_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -503,7 +503,7 @@ Examples:
       {
         conversation_id: z.string().describe("The conversation ID to reopen"),
       },
-      { title: "Reopen Conversation", readOnlyHint: false, destructiveHint: false },
+      { title: "Reopen Conversation", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ conversation_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -534,7 +534,7 @@ Examples:
         reopen_on_message: z.boolean().optional().describe("Clear the snooze early if the customer sends a new message (default: true)"),
         unsnooze: z.boolean().optional().describe("Set true to clear an active snooze instead of setting one"),
       },
-      { title: "Snooze Conversation", readOnlyHint: false, destructiveHint: false },
+      { title: "Snooze Conversation", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ conversation_id, snooze_until, reopen_on_message, unsnooze }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -587,7 +587,7 @@ If multiple mailboxes are configured and none is specified, the default mailbox 
         mailbox_id: z.string().optional().describe("Email mailbox ID to send from (default: the default mailbox)"),
         save_as_contact_method: z.boolean().optional().describe("Save to_email as an email contact method on the contact (default: false)"),
       },
-      { title: "Email Conversation Transcript", readOnlyHint: false, destructiveHint: false },
+      { title: "Email Conversation Transcript", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
       async ({ conversation_id, to_email, note, mailbox_id, save_as_contact_method }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -647,7 +647,7 @@ Examples:
         mentioned_user_ids: z.array(z.string()).optional().describe("User IDs to @mention — each gets a notification"),
         assign_to_user_id: z.string().optional().describe("Also assign the conversation to this user"),
       },
-      { title: "Add Internal Note", readOnlyHint: false, destructiveHint: false },
+      { title: "Add Internal Note", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       async ({ conversation_id, text, mentioned_user_ids, assign_to_user_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {

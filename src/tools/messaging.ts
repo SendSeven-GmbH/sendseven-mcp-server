@@ -85,7 +85,7 @@ Examples:
       attachments: z.array(attachmentInputSchema).optional().describe('Files to attach. Each entry is EITHER {"id": "<attachment-id>"} (already uploaded) OR {"url": "https://...", "filename?": "..."} (public URL, downloaded server-side).'),
       create_if_not_exists: z.boolean().optional().describe("Create contact if not found (default: true)"),
     },
-    { title: "Send Message to Contact", readOnlyHint: false, destructiveHint: false },
+    { title: "Send Message to Contact", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (params) => {
       const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
       try {
@@ -296,7 +296,7 @@ Examples:
         })
       ).optional().describe("Per-card parameters for a CAROUSEL template, positionally (entry 0 = first card). Only for carousel templates."),
     },
-    { title: "Send WhatsApp Template", readOnlyHint: false, destructiveHint: false },
+    { title: "Send WhatsApp Template", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (params) => {
       if (!params.contact_id && !params.contact_method_id && !params.whatsapp_id && !params.conversation_id) {
         return wrapError({

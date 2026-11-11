@@ -51,8 +51,24 @@ const ctx: ToolContext = {
   scopes: allScopes,
 };
 
-/** Only genuinely destructive operations should ever set destructiveHint: true. */
-const EXPECTED_DESTRUCTIVE_TOOLS = ["delete_webhook", "publish_agent", "publish_flow"];
+/**
+ * destructiveHint: true = can delete, overwrite or replace existing data (OpenAI
+ * Apps SDK: "being able to undo does not by itself justify false"). Purely
+ * additive writes stay false so ChatGPT does not ask for needless confirmation.
+ */
+const EXPECTED_DESTRUCTIVE_TOOLS = [
+  "delete_webhook", "publish_agent", "publish_flow",
+  "update_contact", "upsert_knowledge_base_document", "crawl_website",
+  "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
+  "save_flow_draft", "upsert_skill", "manage_skill_versions",
+  "manage_custom_fields", "manage_lists", "untag_contact", "untag_conversation",
+];
+
+/** Tools that reach customers or external systems (openWorldHint: true). */
+const EXPECTED_OPEN_WORLD_TOOLS = [
+  "crawl_website", "send_reply", "email_conversation_transcript", "send_message_to_contact",
+  "send_whatsapp_template", "send_email", "create_and_send_campaign", "create_webhook", "upload_attachment",
+];
 
 /** Agent Builder tools (v0.4.0): every one declares a nullable outputSchema. */
 export const AGENT_BUILDER_TOOLS = [
@@ -140,6 +156,29 @@ describe("tools/list wire annotations (full tool surface)", () => {
         `"destructive" in MCP clients (e.g. ChatGPT) that default un-annotated ` +
         `tools to destructive: ${JSON.stringify(offenders.map((t) => t.name))}`
     ).toEqual([]);
+  });
+
+  it("gives every tool explicit boolean readOnlyHint, destructiveHint AND openWorldHint (OpenAI review requirement)", async () => {
+    const tools = await listToolsOverRealWire();
+    const offenders: string[] = [];
+    for (const t of tools) {
+      for (const k of ["readOnlyHint", "destructiveHint", "openWorldHint"] as const) {
+        if (typeof t.annotations?.[k] !== "boolean") offenders.push(`${t.name}.${k}`);
+      }
+    }
+    expect(offenders, `tools without an explicit boolean hint (never rely on defaults): ${offenders.join(", ")}`).toEqual([]);
+  });
+
+  it("marks exactly the known open-world tools as openWorldHint: true", async () => {
+    const tools = await listToolsOverRealWire();
+    const open = tools.filter((t) => t.annotations?.openWorldHint === true).map((t) => t.name).sort();
+    expect(open).toEqual([...EXPECTED_OPEN_WORLD_TOOLS].sort());
+  });
+
+  it("never marks a read-only tool destructive", async () => {
+    const tools = await listToolsOverRealWire();
+    const bad = tools.filter((t) => t.annotations?.readOnlyHint === true && t.annotations?.destructiveHint === true);
+    expect(bad.map((t) => t.name)).toEqual([]);
   });
 
   it("marks exactly the known-destructive tools as destructiveHint: true", async () => {

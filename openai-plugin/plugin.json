@@ -31,7 +31,7 @@
         "shortDescription": "Your customer inbox, unified",
         "longDescription": "SendSeven brings your whole customer inbox into ChatGPT. Connect your SendSeven workspace and manage WhatsApp, Instagram, Telegram, Messenger, SMS and email conversations in plain language.\n\nWhat you can do\n- Triage the inbox: see which conversations need a reply, summarize threads, and assign, tag, snooze or close them.\n- Reply to customers: draft answers grounded in your knowledge base and send them on the right channel after you confirm. Send approved WhatsApp templates and emails.\n- Work with contacts: search and create contacts, update their details and tag them.\n- Check campaigns: list campaigns and review their delivery status.\n- Support your team: leave internal notes, check team availability and post to team chat channels.\n- Search your knowledge base to answer questions accurately.\n\nWho it is for\nSupport, sales and operations teams that already use SendSeven and want to handle conversations faster from ChatGPT or Codex.\n\nAccess and limitations\n- Requires a SendSeven account. You sign in with OAuth and choose which permissions to grant; the plugin can only do what your account and the granted permissions allow.\n- It only accesses the workspace you connect. It cannot read other workspaces or accounts.\n- Messages you send reach real customers, so the assistant asks for your confirmation before sending, closing or changing anything important.\n- Channel rules still apply, for example the WhatsApp 24-hour window requires an approved template outside the window, and blocked or unsubscribed contacts cannot be messaged.\n- It does not process payments, sell products or provide legal or medical advice.",
         "developerName": "SendSeven GmbH",
-        "category": "Business",
+        "category": "Productivity",
         "capabilities": [
           "Triage conversations",
           "Reply on any channel",
@@ -107,7 +107,7 @@
             }
           ]
         },
-        "demo_recording_url": "TODO",
+        "demo_recording_url": "https://youtu.be/FeYN3LPrAvE",
         "commerce": false,
         "commerce_description": "This plugin does not sell products or process payments. It only reads and manages the user's own SendSeven messaging data."
       },

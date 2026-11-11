@@ -30,7 +30,7 @@ export function registerPermissionTools(server: McpServer, ctx: ToolContext): vo
         all_granted: z.boolean(),
         how_to_get_missing: z.string().nullable().optional(),
       },
-      annotations: { title: "Check Permissions", readOnlyHint: true, destructiveHint: false },
+      annotations: { title: "Check Permissions", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     async () => wrapStructured(buildPermissionReport(ctx.scopes))
   );

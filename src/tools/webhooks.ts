@@ -90,7 +90,7 @@ Examples:
 - "Show my webhooks"
 - "Is my n8n webhook still working?"`,
       {},
-      { title: "List Webhooks", readOnlyHint: true, destructiveHint: false },
+      { title: "List Webhooks", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       async () => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -159,7 +159,7 @@ Examples:
           .describe("Event types to subscribe to, e.g. ['message.received', 'conversation.closed'] — see the tool description for the full list of valid values"),
         authorization_header: z.string().optional().describe("Optional Authorization header value sent with each delivery (e.g., 'Bearer token123')"),
       },
-      { title: "Create Webhook", readOnlyHint: false, destructiveHint: false },
+      { title: "Create Webhook", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
       async ({ name, url, events, authorization_header }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
@@ -193,7 +193,7 @@ Examples:
       {
         webhook_id: z.string().describe("The webhook ID to delete (from list_webhooks)"),
       },
-      { title: "Delete Webhook", readOnlyHint: false, destructiveHint: true },
+      { title: "Delete Webhook", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       async ({ webhook_id }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
