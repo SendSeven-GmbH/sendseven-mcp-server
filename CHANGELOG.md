@@ -6,6 +6,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Verified for the API change where `POST /agents` defaults to `publish: false`: `create_agent` already sends `publish: false` explicitly, so nothing changes. Regenerated the bundled guides (`generated-guides.ts`) from the updated developer docs (agents now default to unpublished drafts).
+
 ## [1.1.0] - Release
 
 Same code as 0.4.0, released as 1.1.0 so it supersedes the earlier 1.0.0 registry listing.
