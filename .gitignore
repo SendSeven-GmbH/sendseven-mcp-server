@@ -10,3 +10,6 @@ coverage/
 # Copy wrangler.jsonc.example to wrangler.jsonc and fill in your own values.
 wrangler.jsonc
 dist-openai/
+
+# Local operator helper for the MCP Registry publish (not part of the public repo).
+publish-registry.sh
