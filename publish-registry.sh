@@ -32,7 +32,7 @@ if [[ ! -f "$KEY" ]]; then
 fi
 
 VERSION="$(node -p "require('./server.json').version")"
-echo "==> Publishing com.sendseven/messaging version ${VERSION}"
+echo "==> Publishing $(node -p "require('./server.json').name") version ${VERSION}"
 
 # Re-auth via DNS (the TXT record + key persist; only the session token expires).
 PRIVATE_KEY="$(openssl pkey -in "$KEY" -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
@@ -42,4 +42,4 @@ mcp-publisher login dns --domain "$DOMAIN" --private-key "$PRIVATE_KEY"
 mcp-publisher publish
 
 echo "==> Done. Verify with:"
-echo "    curl \"https://registry.modelcontextprotocol.io/v0/servers?search=com.sendseven/messaging\""
+echo "    curl \"https://registry.modelcontextprotocol.io/v0/servers?search=whatsapp-instagram-telegram\""

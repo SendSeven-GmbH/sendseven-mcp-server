@@ -1,0 +1,10 @@
+{
+  "name": "sendseven",
+  "version": "1.7.0",
+  "description": "SendSeven: one inbox and API for WhatsApp, Instagram, Telegram, SMS, Messenger and email. Send messages, manage conversations, contacts and campaigns.",
+  "mcpServers": {
+    "sendseven": {
+      "httpUrl": "https://mcp.sendseven.com/mcp"
+    }
+  }
+}

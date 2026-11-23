@@ -1,0 +1,18 @@
+{
+  "name": "sendseven",
+  "owner": {
+    "name": "SendSeven GmbH",
+    "email": "support@sendseven.com"
+  },
+  "metadata": {
+    "description": "SendSeven plugins for Cursor",
+    "version": "1.7.0"
+  },
+  "plugins": [
+    {
+      "name": "sendseven",
+      "source": "./cursor-plugin",
+      "description": "Unified customer inbox for WhatsApp, Instagram, Telegram, SMS, Messenger and email, right inside Cursor."
+    }
+  ]
+}

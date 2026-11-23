@@ -1,0 +1,16 @@
+{
+  "name": "sendseven",
+  "displayName": "SendSeven",
+  "version": "1.7.0",
+  "description": "Connect your SendSeven workspace: triage and reply to WhatsApp, Instagram, Telegram, Messenger, SMS and email conversations, manage contacts and check campaigns.",
+  "author": {
+    "name": "SendSeven GmbH",
+    "email": "support@sendseven.com",
+    "url": "https://sendseven.com"
+  },
+  "homepage": "https://sendseven.com",
+  "repository": "https://github.com/SendSeven-GmbH/sendseven-mcp-server",
+  "license": "MIT",
+  "keywords": ["sendseven", "whatsapp", "instagram", "telegram", "sms", "messenger", "email", "inbox", "customer-support", "crm", "contacts", "campaigns", "mcp"],
+  "logo": "assets/logo.svg"
+}

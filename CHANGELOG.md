@@ -6,6 +6,14 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.7.0] - Release
+
+- Version aligned with the other SendSeven integrations (n8n, Zapier, Make.com); 1.2.0 was never released.
+- Listed in the MCP Registry as `com.sendseven/whatsapp-instagram-telegram-sms-messenger-email` (title "SendSeven"); replaces `com.sendseven/messaging`.
+- Added a Gemini CLI extension (`gemini-extension.json`) and a Cursor plugin (`.cursor-plugin/`, `cursor-plugin/`).
+
+- `create_webhook` accepts the tag events `conversation.tag_added`, `conversation.tag_removed`, `contact.tag_added` and `contact.tag_removed` (one event per tag). The event list in the tool description is updated.
+
 - Verified for the API change where `POST /agents` defaults to `publish: false`: `create_agent` already sends `publish: false` explicitly, so nothing changes. Regenerated the bundled guides (`generated-guides.ts`) from the updated developer docs (agents now default to unpublished drafts).
 
 ## [1.1.0] - Release
