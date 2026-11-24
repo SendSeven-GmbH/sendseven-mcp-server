@@ -94,7 +94,7 @@ npm run dev  # Runs on localhost:8787
 
 Tools are registered based on the capabilities selected during the OAuth
 connection. The table below groups tools by function for readability; the
-OAuth consent screen groups the same 69 tools into 12 coarser capability
+OAuth consent screen groups the same 70 tools into 12 coarser capability
 groups (Conversations, Messaging, Email, Contacts, Campaigns, Knowledge Base,
 Webhooks, Team Chat Bots, Agent Builder, Knowledge Base Authoring, Contact Data Model, Flows) — granting a group grants every tool
 listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
@@ -113,7 +113,7 @@ listed under it below. Full parameter reference: [docs/TOOLS.md](docs/TOOLS.md).
 | **Agent Builder** | `list_agents`, `get_agent`, `create_agent`, `update_agent_draft`, `set_agent_skills`, `set_agent_knowledge_sources`, `test_agent`, `get_agent_readiness`, `publish_agent`, `attach_agent_to_channel`, `upsert_skill`, `manage_skill_versions` |
 | **Knowledge Base Authoring** | `list_knowledge_base_documents`, `create_knowledge_base_folder`, `upsert_knowledge_base_document`, `crawl_website`, `add_faq_entries` |
 | **Contact Data Model** | `manage_custom_fields`, `manage_lists` (plus the tag tools) |
-| **Flows** | `validate_flow`, `save_flow_draft`, `publish_flow`, `test_flow` |
+| **Flows** | `list_flows`, `validate_flow`, `save_flow_draft`, `publish_flow`, `test_flow` |
 | **Permissions** | `check_permissions` (always available) |
 | **Webhooks (Developer)** | `list_webhooks`, `create_webhook`, `delete_webhook` |
 

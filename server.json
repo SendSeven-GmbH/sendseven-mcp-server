@@ -3,7 +3,7 @@
   "name": "com.sendseven/whatsapp-instagram-telegram-sms-messenger-email",
   "title": "SendSeven",
   "description": "Unified messaging MCP server: WhatsApp, Instagram, Telegram, SMS, Messenger & email support inbox",
-  "version": "1.7.0",
+  "version": "1.9.0",
   "repository": {
     "url": "https://github.com/SendSeven-GmbH/sendseven-mcp-server",
     "source": "github"

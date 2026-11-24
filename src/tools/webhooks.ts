@@ -48,6 +48,7 @@ const WEBHOOK_EVENT_TYPES = [
   "contact.deleted",
   "contact.subscribed",
   "contact.unsubscribed",
+  "contact.tracking_consent_changed",
   "contact.tag_added",
   "contact.tag_removed",
   // Campaign messenger events
@@ -142,7 +143,7 @@ Valid event types (grouped by category — see the events param for the full enu
 - message: message.received, message.sent, message.delivered, message.failed, message.read, message.reaction
 - email: email.received, email.sent, email.delivered, email.bounced, email.opened, email.complained
 - conversation: conversation.created, conversation.closed, conversation.assigned, conversation.reopened, conversation.updated, conversation.transcript.created, conversation.tag_added, conversation.tag_removed
-- contact: contact.created, contact.updated, contact.deleted, contact.subscribed, contact.unsubscribed, contact.tag_added, contact.tag_removed
+- contact: contact.created, contact.updated, contact.deleted, contact.subscribed, contact.unsubscribed, contact.tracking_consent_changed, contact.tag_added, contact.tag_removed
 - campaign (messaging channels): campaign.message.sent, campaign.message.delivered, campaign.message.read, campaign.message.failed
 - campaign (email): campaign.email.sent, campaign.email.delivered, campaign.email.bounced, campaign.email.opened, campaign.email.complained
 - channel: channel.created, channel.updated, channel.deleted

@@ -117,6 +117,7 @@ action:
           contact_ids: z.array(z.string()).max(100).optional().describe("add/remove: up to 100 contact ids"),
           channel_type: z.string().optional().describe("add/remove: channel of the subscription, e.g. email"),
           channel_id: z.string().optional().describe("add: channel id, only for telegram/messenger/instagram lists"),
+          tracking_consent: z.enum(["granted", "denied"]).optional().describe("add_members, email: consent to open and click tracking for the address (needed for EU, UK and Swiss recipients). Omit to keep the current value."),
         },
         outputSchema: {
           action: z.string(),
@@ -158,7 +159,12 @@ action:
             try {
               if (p.action === "add_members") {
                 await client.call("POST", `/lists/${encodeURIComponent(p.list_id)}/members`, {
-                  body: { contact_id: cid, channel_type: p.channel_type, channel_id: p.channel_id },
+                  body: {
+                    contact_id: cid,
+                    channel_type: p.channel_type,
+                    channel_id: p.channel_id,
+                    ...(p.tracking_consent ? { tracking_consent: p.tracking_consent } : {}),
+                  },
                 });
               } else {
                 await client.call("DELETE", `/lists/${encodeURIComponent(p.list_id)}/members/${encodeURIComponent(cid)}`, {

@@ -78,7 +78,7 @@ export const AGENT_BUILDER_TOOLS = [
   "list_agents", "get_agent", "create_agent", "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
   "test_agent", "get_agent_readiness", "publish_agent", "attach_agent_to_channel",
   "upsert_skill", "manage_skill_versions",
-  "validate_flow", "save_flow_draft", "publish_flow", "test_flow",
+  "list_flows", "validate_flow", "save_flow_draft", "publish_flow", "test_flow",
   "check_permissions",
 ];
 
@@ -94,12 +94,12 @@ const EXPECTED_OUTPUT_SCHEMA_TOOLS = [
     "list_agents", "get_agent", "create_agent", "update_agent_draft", "set_agent_skills", "set_agent_knowledge_sources",
     "test_agent", "get_agent_readiness", "publish_agent", "attach_agent_to_channel",
     "upsert_skill", "manage_skill_versions",
-    "validate_flow", "save_flow_draft", "publish_flow", "test_flow",
+    "list_flows", "validate_flow", "save_flow_draft", "publish_flow", "test_flow",
     "check_permissions",
   ],
 ].sort();
 
-const EXPECTED_TOOL_COUNT = 69;
+const EXPECTED_TOOL_COUNT = 70;
 
 async function listToolsOverRealWire() {
   const server = new McpServer({ name: "test-probe", version: "0.0.0" });

@@ -1,6 +1,6 @@
 # Tool Reference
 
-Complete reference for all 69 SendSeven MCP tools. Tools are registered
+Complete reference for all 70 SendSeven MCP tools. Tools are registered
 based on the capabilities you select during the OAuth connection — a tool only
 appears if its required scopes were granted.
 
@@ -626,6 +626,7 @@ Guided workflows are available as MCP prompts: `build_conversational_agent`, `wr
 ### Flows
 | Tool | Purpose | Scope |
 |------|---------|-------|
+| `list_flows` | List flows with id, name, status, flow_type and trigger type; filter by `flow_type` and `status`, paginated | `flows:read` |
 | `validate_flow` | Save checks without saving; `errors[{path, code, message}]` | `flows:read` or `flows:write` |
 | `save_flow_draft` | Create/update a DRAFT flow by name; refuses to change a live flow | `flows:write` |
 | `publish_flow` | Publish. Requires `confirm=true`. Destructive annotation | `flows:publish` |
