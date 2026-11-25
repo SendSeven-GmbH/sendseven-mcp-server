@@ -304,9 +304,10 @@ Examples:
         conversation_id: z.string().describe("The conversation ID to reply to"),
         text: z.string().describe("The reply message text"),
         attachments: z.array(attachmentInputSchema).optional().describe('Files to attach. Each entry is EITHER {"id": "<attachment-id>"} (already uploaded) OR {"url": "https://...", "filename?": "..."} (public URL, downloaded server-side).'),
+        preview_url: z.boolean().optional().describe("Show a link preview. WhatsApp: shows a preview of the first link. Telegram: set to false to hide the preview. Ignored on other channels. Omit for the channel default."),
       },
       { title: "Send Reply", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-      async ({ conversation_id, text, attachments }) => {
+      async ({ conversation_id, text, attachments, preview_url }) => {
         const client = new SendSevenApiClient(ctx.apiUrl, ctx.accessToken, ctx.tokenRefresher, ctx.scopes);
         try {
           // Step 1: Fetch conversation to get contact_id and channel_type
@@ -424,6 +425,7 @@ Examples:
             conversation_id,
             text,
             attachments: attachmentIds.length > 0 ? attachmentIds : undefined,
+            preview_url,
           });
 
           return wrapResult({

@@ -391,6 +391,8 @@ export class SendSevenApiClient {
     attachments?: string[];
     /** Positional filename overrides aligned to `attachments` by index. */
     attachment_filenames?: string[];
+    /** Optional link preview toggle; omitted = channel default. */
+    preview_url?: boolean;
   }): Promise<Message> {
     const body: Record<string, unknown> = {
       contact_id: params.contact_id,
@@ -403,6 +405,7 @@ export class SendSevenApiClient {
         body.attachment_filenames = params.attachment_filenames;
       }
     }
+    if (params.preview_url !== undefined) body.preview_url = params.preview_url;
     return this.post("/messages", body);
   }
 
@@ -469,6 +472,8 @@ export class SendSevenApiClient {
     attachments?: string[];
     /** Positional filename overrides aligned to `attachments` by index. */
     attachment_filenames?: string[];
+    /** Optional link preview toggle; omitted = channel default. */
+    preview_url?: boolean;
   }): Promise<Message> {
     const body: Record<string, unknown> = {
       contact_id: params.contact_id,
@@ -482,6 +487,7 @@ export class SendSevenApiClient {
         body.attachment_filenames = params.attachment_filenames;
       }
     }
+    if (params.preview_url !== undefined) body.preview_url = params.preview_url;
     return this.post("/messages", body);
   }
 

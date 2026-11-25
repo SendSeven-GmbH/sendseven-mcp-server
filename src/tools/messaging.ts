@@ -84,6 +84,7 @@ Examples:
       channel: z.enum(["auto", "whatsapp", "telegram", "messenger", "instagram", "sms"]).optional().describe("Channel to use. 'auto' (default) picks the best available channel. For email, use the send_email tool."),
       attachments: z.array(attachmentInputSchema).optional().describe('Files to attach. Each entry is EITHER {"id": "<attachment-id>"} (already uploaded) OR {"url": "https://...", "filename?": "..."} (public URL, downloaded server-side).'),
       create_if_not_exists: z.boolean().optional().describe("Create contact if not found (default: true)"),
+      preview_url: z.boolean().optional().describe("Show a link preview. WhatsApp: shows a preview of the first link. Telegram: set to false to hide the preview. Ignored on other channels. Omit for the channel default."),
     },
     { title: "Send Message to Contact", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (params) => {
@@ -230,6 +231,7 @@ Examples:
           text: params.message,
           channel_id: selectedChannel.channel_id,
           attachments: attachmentIds.length > 0 ? attachmentIds : undefined,
+          preview_url: params.preview_url,
         });
 
         return wrapResult({
